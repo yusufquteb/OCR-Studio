@@ -1,0 +1,25 @@
+package com.ocrstudio.core.database.entity
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "page_records",
+    indices = [Index(value = ["jobId", "pageNumber"], unique = true)]
+)
+data class PageRecord(
+    @PrimaryKey val id: String,
+    val jobId: String,
+    val pageNumber: Int,
+    val rawText: String,
+    val correctedText: String,
+    val ocrConfidence: Float,
+    val dictionaryHitRate: Float,
+    val parserConfidence: Float,
+    val finalScore: Float,
+    val needsReview: Boolean,              // finalScore < 0.80
+    val winningEngineId: String,           // which OCR engine's result was kept
+    val imagePath: String?,                // kept only if "keep images" setting on
+    val processedAtEpochMs: Long
+)

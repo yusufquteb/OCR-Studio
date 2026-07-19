@@ -1,0 +1,82 @@
+<resources>
+    <string name="app_name">OCR Studio</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">Library</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_models">Models</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Library / Home -->
+    <string name="library_title">My Books</string>
+    <string name="library_empty_title">No books yet</string>
+    <string name="library_empty_subtitle">Tap + to add an Arabic PDF and start OCR processing</string>
+    <string name="library_add_pdf">Add PDF</string>
+    <string name="job_status_queued">Queued</string>
+    <string name="job_status_running">Running</string>
+    <string name="job_status_paused">Paused</string>
+    <string name="job_status_done">Done</string>
+    <string name="job_status_failed">Failed</string>
+
+    <!-- New Job Wizard -->
+    <string name="new_job_title">New OCR Job</string>
+    <string name="new_job_book_title">Title</string>
+    <string name="new_job_parser_profile">Parser profile</string>
+    <string name="new_job_dpi_preset">Scan quality</string>
+    <string name="new_job_dpi_standard">Standard (300 DPI)</string>
+    <string name="new_job_dpi_old_book">Old book (400 DPI)</string>
+    <string name="new_job_dpi_max">Maximum (600 DPI)</string>
+    <string name="new_job_batch_size">Batch size</string>
+    <string name="new_job_ocr_engine">OCR engine</string>
+    <string name="new_job_correction_mode">Correction mode</string>
+    <string name="new_job_correction_rules_only">Rules only</string>
+    <string name="new_job_correction_rules_and_llm">Rules + LLM</string>
+    <string name="new_job_keep_images">Keep page images</string>
+    <string name="new_job_preview_step">Preprocessing preview</string>
+    <string name="new_job_start">Start job</string>
+
+    <!-- Job Progress -->
+    <string name="progress_title">Job Progress</string>
+    <string name="progress_pause">Pause</string>
+    <string name="progress_resume">Resume</string>
+    <string name="progress_cancel">Cancel</string>
+    <string name="progress_pages_per_minute">%1$.1f pages/min</string>
+    <string name="progress_eta">ETA %1$d min</string>
+    <string name="progress_errors">%1$d errors</string>
+
+    <!-- Review -->
+    <string name="review_title">Review</string>
+    <string name="review_needs_review">Needs review</string>
+    <string name="review_raw_text">Raw OCR</string>
+    <string name="review_corrected_text">Corrected text</string>
+    <string name="review_save">Save</string>
+    <string name="review_reprocess_page">Reprocess this page</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search across all books…</string>
+    <string name="search_no_results">No results</string>
+
+    <!-- Models -->
+    <string name="models_title">Models</string>
+    <string name="models_download">Download</string>
+    <string name="models_delete">Delete</string>
+    <string name="models_import_local">Import from file</string>
+    <string name="models_license_apache">Apache 2.0, no gate</string>
+    <string name="models_license_gemma">Requires accepting Google\'s Gemma terms on Hugging Face</string>
+
+    <!-- Export -->
+    <string name="export_title">Export</string>
+    <string name="export_select_job">Select job</string>
+    <string name="export_select_format">Select format</string>
+    <string name="export_start">Export</string>
+    <string name="export_history">Export history</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_default_batch_size">Default batch size</string>
+    <string name="settings_default_dpi">Default DPI</string>
+    <string name="settings_keep_images">Keep page images by default</string>
+    <string name="settings_battery_constraint">Only process while charging</string>
+    <string name="settings_clear_cache">Clear cache</string>
+</resources>

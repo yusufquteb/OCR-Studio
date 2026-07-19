@@ -1,0 +1,82 @@
+<resources>
+    <string name="app_name">استوديو المسح الضوئي</string>
+
+    <!-- Navigation -->
+    <string name="nav_library">المكتبة</string>
+    <string name="nav_search">بحث</string>
+    <string name="nav_models">النماذج</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <!-- Library / Home -->
+    <string name="library_title">كتبي</string>
+    <string name="library_empty_title">لا توجد كتب بعد</string>
+    <string name="library_empty_subtitle">اضغط على + لإضافة ملف PDF عربي وبدء المعالجة</string>
+    <string name="library_add_pdf">إضافة PDF</string>
+    <string name="job_status_queued">في الانتظار</string>
+    <string name="job_status_running">قيد التنفيذ</string>
+    <string name="job_status_paused">متوقف مؤقتاً</string>
+    <string name="job_status_done">مكتمل</string>
+    <string name="job_status_failed">فشل</string>
+
+    <!-- New Job Wizard -->
+    <string name="new_job_title">مهمة مسح ضوئي جديدة</string>
+    <string name="new_job_book_title">العنوان</string>
+    <string name="new_job_parser_profile">نمط التحليل</string>
+    <string name="new_job_dpi_preset">جودة المسح</string>
+    <string name="new_job_dpi_standard">قياسي (300 نقطة/بوصة)</string>
+    <string name="new_job_dpi_old_book">كتاب قديم (400 نقطة/بوصة)</string>
+    <string name="new_job_dpi_max">أقصى جودة (600 نقطة/بوصة)</string>
+    <string name="new_job_batch_size">حجم الدفعة</string>
+    <string name="new_job_ocr_engine">محرك المسح الضوئي</string>
+    <string name="new_job_correction_mode">وضع التصحيح</string>
+    <string name="new_job_correction_rules_only">القواعد فقط</string>
+    <string name="new_job_correction_rules_and_llm">القواعد + الذكاء الاصطناعي</string>
+    <string name="new_job_keep_images">الاحتفاظ بصور الصفحات</string>
+    <string name="new_job_preview_step">معاينة المعالجة المسبقة</string>
+    <string name="new_job_start">بدء المهمة</string>
+
+    <!-- Job Progress -->
+    <string name="progress_title">تقدم المهمة</string>
+    <string name="progress_pause">إيقاف مؤقت</string>
+    <string name="progress_resume">استئناف</string>
+    <string name="progress_cancel">إلغاء</string>
+    <string name="progress_pages_per_minute">%1$.1f صفحة/دقيقة</string>
+    <string name="progress_eta">الوقت المتبقي %1$d دقيقة</string>
+    <string name="progress_errors">%1$d أخطاء</string>
+
+    <!-- Review -->
+    <string name="review_title">المراجعة</string>
+    <string name="review_needs_review">يحتاج مراجعة</string>
+    <string name="review_raw_text">النص الخام</string>
+    <string name="review_corrected_text">النص المصحح</string>
+    <string name="review_save">حفظ</string>
+    <string name="review_reprocess_page">إعادة معالجة هذه الصفحة</string>
+
+    <!-- Search -->
+    <string name="search_title">بحث</string>
+    <string name="search_hint">البحث في جميع الكتب…</string>
+    <string name="search_no_results">لا توجد نتائج</string>
+
+    <!-- Models -->
+    <string name="models_title">النماذج</string>
+    <string name="models_download">تنزيل</string>
+    <string name="models_delete">حذف</string>
+    <string name="models_import_local">استيراد من ملف</string>
+    <string name="models_license_apache">رخصة Apache 2.0، بدون قيود</string>
+    <string name="models_license_gemma">يتطلب قبول شروط Gemma من Google على Hugging Face</string>
+
+    <!-- Export -->
+    <string name="export_title">تصدير</string>
+    <string name="export_select_job">اختر المهمة</string>
+    <string name="export_select_format">اختر الصيغة</string>
+    <string name="export_start">تصدير</string>
+    <string name="export_history">سجل التصدير</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_default_batch_size">حجم الدفعة الافتراضي</string>
+    <string name="settings_default_dpi">الدقة الافتراضية</string>
+    <string name="settings_keep_images">الاحتفاظ بصور الصفحات افتراضياً</string>
+    <string name="settings_battery_constraint">المعالجة أثناء الشحن فقط</string>
+    <string name="settings_clear_cache">مسح التخزين المؤقت</string>
+</resources>
