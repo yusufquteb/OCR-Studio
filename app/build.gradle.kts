@@ -49,6 +49,12 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        // OpenCV, Tesseract4Android, and pdfium-android each bundle their own copy of
+        // libc++_shared.so; without this the debug build fails at :app:mergeDebugNativeLibs
+        // with "2 files found with path 'lib/arm64-v8a/libc++_shared.so'".
+        jniLibs {
+            pickFirsts += "**/libc++_shared.so"
+        }
     }
 }
 

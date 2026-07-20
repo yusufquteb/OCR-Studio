@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+    implementation("javax.inject:javax.inject:1")
 
     testImplementation(libs.junit)
 }
