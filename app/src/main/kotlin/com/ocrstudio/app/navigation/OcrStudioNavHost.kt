@@ -1,5 +1,6 @@
 package com.ocrstudio.app.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.LibraryBooks
