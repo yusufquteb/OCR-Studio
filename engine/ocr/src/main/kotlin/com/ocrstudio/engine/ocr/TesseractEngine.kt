@@ -3,9 +3,9 @@ package com.ocrstudio.engine.ocr
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import com.googlecode.tesseract.android.PageIteratorLevel
 import com.googlecode.tesseract.android.ResultIterator
 import com.googlecode.tesseract.android.TessBaseAPI
+import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel
 import com.ocrstudio.core.common.AssetPaths
 import com.ocrstudio.core.common.OcrConfig
 import com.ocrstudio.core.common.OcrEngineIds
