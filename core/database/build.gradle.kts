@@ -30,8 +30,11 @@ dependencies {
     implementation(project(":core:common"))
 
     implementation(libs.core.ktx)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
+    // api, not implementation: AppDatabase (extends RoomDatabase) and the generated DAOs are
+    // part of this module's public surface, so consumers (:engine:export, :worker, :app) need
+    // Room's types on their own compile classpath too.
+    api(libs.room.runtime)
+    api(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.coroutines.core)
     implementation("javax.inject:javax.inject:1")
