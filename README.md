@@ -21,16 +21,13 @@ models) — never anything else.
 ./gradlew assembleDebug
 ```
 
-> **Note on this repository's origin:** this project was generated in a sandboxed environment
-> without access to the Android SDK or to Google's Maven repository (`dl.google.com` was not
-> reachable), so `assembleDebug` could not be executed there. The Gradle/Kotlin DSL
-> configuration was validated for syntactic correctness (`gradle wrapper`, `gradle help`
-> project-graph evaluation), and the Android-independent business logic (`RuleEngine`,
-> `Normalization`, `ConfusionMap`, `ValidationScorer`) was extracted into a throwaway plain
-> Kotlin/JVM Gradle project and its unit tests were run successfully there. A full
-> `assembleDebug` should be run in Android Studio (or any environment with the Android SDK and
-> normal internet access) before shipping — see "Known risks" below for the handful of spots
-> most likely to need a tweak.
+> **CI status:** `./gradlew test` and `./gradlew assembleDebug` both pass on GitHub Actions
+> (`.github/workflows/android-build.yml`, real Android SDK + network access) — see the
+> "Android CI" workflow runs on this branch. The debug APK is uploaded as a build artifact on
+> every successful run. This repo was originally authored in a sandbox without Android SDK or
+> Google Maven access, so the initial implementation had a handful of real bugs (wrong artifact
+> versions, an API misuse or two, a missing dependency scope); all were found and fixed by
+> iterating against actual CI failures rather than guesswork, and the build has been green since.
 
 ## Project structure
 
