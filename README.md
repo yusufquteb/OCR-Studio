@@ -39,7 +39,7 @@ Multi-module Gradle project (Kotlin DSL), version catalog at `gradle/libs.versio
 ```
 :app                 Compose UI (Material 3), Hilt wiring, navigation, screens
 :core:common         Shared models, AppResult, ValidationScorer, dispatchers, constants
-:core:database       Room entities/DAOs, FTS5 search index, PageRepository
+:core:database       Room entities/DAOs, FTS4 search index, PageRepository
 :core:ui             Theme (RTL-aware), shared composables (diff view, chips, badges)
 :engine:pdf          Pdfium-backed PDF rendering (SAF, DPI-based, auto-downsampled)
 :engine:image        OpenCV preprocessing pipeline (deskew, denoise, binarize, ...)
@@ -102,7 +102,7 @@ text) if it differs in length by more than 15% or contains Latin sentences.
 
 ### Search
 
-FTS5 virtual tables (`unicode61 remove_diacritics=2`) kept in sync by `PageRepository` inside
+FTS4 virtual tables (`unicode61 remove_diacritics=2`) kept in sync by `PageRepository` inside
 the same transaction as each page's write, so full-text search is diacritics-insensitive by
 construction.
 

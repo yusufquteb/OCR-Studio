@@ -2,10 +2,10 @@ package com.ocrstudio.core.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Fts5
+import androidx.room.Fts4
 import androidx.room.PrimaryKey
 
-@Fts5(tokenizer = "unicode61", tokenizerArgs = ["remove_diacritics=2"])
+@Fts4(tokenizer = "unicode61", tokenizerArgs = ["remove_diacritics=2"])
 @Entity(tableName = "word_fts")
 data class WordFts(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "rowid") val rowId: Int = 0,

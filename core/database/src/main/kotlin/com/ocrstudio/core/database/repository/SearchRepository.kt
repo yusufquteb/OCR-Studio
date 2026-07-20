@@ -8,7 +8,7 @@ class SearchRepository @Inject constructor(
     private val db: AppDatabase
 ) {
     /**
-     * Builds an FTS5 MATCH expression from free-form user input: strip characters that would
+     * Builds an FTS4 MATCH expression from free-form user input: strip characters that would
      * otherwise be interpreted as FTS query syntax, then quote each token so words like "AND"
      * or punctuation don't get misparsed as operators, and OR them together.
      */
