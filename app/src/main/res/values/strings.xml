@@ -60,6 +60,10 @@
     <!-- Models -->
     <string name="models_title">Models</string>
     <string name="models_download">Download</string>
+    <string name="models_pause">Pause</string>
+    <string name="models_resume">Resume</string>
+    <string name="models_retry">Retry</string>
+    <string name="models_cancel">Cancel</string>
     <string name="models_delete">Delete</string>
     <string name="models_import_local">Import from file</string>
     <string name="models_license_apache">Apache 2.0, no gate</string>

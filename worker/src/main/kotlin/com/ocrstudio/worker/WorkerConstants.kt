@@ -16,4 +16,8 @@ object WorkerConstants {
     const val KEY_DOWNLOAD_URL = "download_url"
     const val KEY_DOWNLOAD_DEST_PATH = "download_dest_path"
     const val KEY_DOWNLOAD_LABEL = "download_label"
+
+    const val KEY_BYTES_DOWNLOADED = "bytes_downloaded"
+    const val KEY_TOTAL_BYTES = "total_bytes"
+    const val KEY_PROGRESS_PERCENT = "progress_percent"
 }

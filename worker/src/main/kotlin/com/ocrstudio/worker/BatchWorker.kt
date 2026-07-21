@@ -2,6 +2,7 @@ package com.ocrstudio.worker
 
 import android.content.ComponentCallbacks2
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.net.Uri
 import androidx.hilt.work.HiltWorker
@@ -193,6 +194,10 @@ class BatchWorker @AssistedInject constructor(
         val notification = NotificationHelper.buildProgressNotification(
             applicationContext, title, content, progressPercent
         )
-        return ForegroundInfo(WorkerConstants.NOTIFICATION_ID_BASE, notification)
+        return ForegroundInfo(
+            WorkerConstants.NOTIFICATION_ID_BASE,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
     }
 }

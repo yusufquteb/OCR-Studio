@@ -60,6 +60,10 @@
     <!-- Models -->
     <string name="models_title">النماذج</string>
     <string name="models_download">تنزيل</string>
+    <string name="models_pause">إيقاف مؤقت</string>
+    <string name="models_resume">استئناف</string>
+    <string name="models_retry">إعادة المحاولة</string>
+    <string name="models_cancel">إلغاء</string>
     <string name="models_delete">حذف</string>
     <string name="models_import_local">استيراد من ملف</string>
     <string name="models_license_apache">رخصة Apache 2.0، بدون قيود</string>

@@ -37,5 +37,18 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
+        <!--
+          WorkManager's own manifest declares this service with no foregroundServiceType, which
+          Android 14+ (targetSdk 34+) rejects at startForeground() time with
+          InvalidForegroundServiceTypeException ("has been prohibited"). Every CoroutineWorker
+          in this app that calls setForeground() (BatchWorker, DownloadWorker) now passes
+          FOREGROUND_SERVICE_TYPE_DATA_SYNC explicitly, and this override declares the matching
+          type on the service itself so the two agree.
+        -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
     </application>
 </manifest>
