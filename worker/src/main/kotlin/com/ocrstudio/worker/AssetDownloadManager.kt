@@ -67,6 +67,8 @@ class AssetDownloadManager @Inject constructor(
         }
     }
 
+    fun uniqueWorkNameFor(destination: File): String = "$UNIQUE_WORK_PREFIX${destination.absolutePath}"
+
     fun observe(uniqueWorkName: String): Flow<DownloadState> =
         workManager.getWorkInfosForUniqueWorkFlow(uniqueWorkName).map { infos ->
             val info = infos.firstOrNull() ?: return@map DownloadState.Idle
@@ -78,17 +80,29 @@ class AssetDownloadManager @Inject constructor(
                 WorkInfo.State.FAILED -> DownloadState.Failed(
                     info.outputData.getString(DownloadWorker.KEY_ERROR_MESSAGE) ?: "Download failed"
                 )
-                WorkInfo.State.CANCELLED -> DownloadState.Failed("Cancelled")
-                else -> DownloadState.InProgress(bytesDownloaded = 0, totalBytes = 0)
+                WorkInfo.State.CANCELLED -> DownloadState.Failed("Paused")
+                else -> DownloadState.InProgress(
+                    bytesDownloaded = info.progress.getLong(WorkerConstants.KEY_BYTES_DOWNLOADED, 0L),
+                    totalBytes = info.progress.getLong(WorkerConstants.KEY_TOTAL_BYTES, -1L),
+                    percent = info.progress.getInt(WorkerConstants.KEY_PROGRESS_PERCENT, -1)
+                )
             }
         }
 
-    fun cancel(uniqueWorkName: String) {
+    /** Pauses an in-flight download; the partial file on disk lets a later [enqueue] resume it. */
+    fun pause(uniqueWorkName: String) {
         workManager.cancelUniqueWork(uniqueWorkName)
     }
 
+    /** Cancels a download and discards its partial file, so a later download starts from zero. */
+    fun cancel(uniqueWorkName: String) {
+        workManager.cancelUniqueWork(uniqueWorkName)
+        val destPath = uniqueWorkName.removePrefix(UNIQUE_WORK_PREFIX)
+        File("$destPath.part").delete()
+    }
+
     private fun enqueue(url: String, destination: File, label: String): String {
-        val uniqueName = "download_${destination.absolutePath}"
+        val uniqueName = uniqueWorkNameFor(destination)
         val request = OneTimeWorkRequestBuilder<DownloadWorker>()
             .setInputData(
                 workDataOf(
@@ -101,5 +115,9 @@ class AssetDownloadManager @Inject constructor(
             .build()
         workManager.enqueueUniqueWork(uniqueName, ExistingWorkPolicy.KEEP, request)
         return uniqueName
+    }
+
+    private companion object {
+        const val UNIQUE_WORK_PREFIX = "download_"
     }
 }

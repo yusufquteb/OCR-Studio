@@ -13,6 +13,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -36,13 +37,17 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
                     title = "Tesseract Arabic",
                     subtitle = "Guaranteed OCR path (tessdata_best)",
                     statusFlow = viewModel.tesseractStatusFlow(),
-                    onDownload = viewModel::downloadTesseract
+                    onDownload = viewModel::downloadTesseract,
+                    onPause = viewModel::pauseTesseract,
+                    onCancel = viewModel::cancelTesseract
                 )
                 AssetCard(
                     title = "PaddleOCR Arabic",
                     subtitle = "Second engine: detection + recognition + dictionary",
                     statusFlow = viewModel.paddleDetStatusFlow(),
-                    onDownload = viewModel::downloadPaddle
+                    onDownload = viewModel::downloadPaddle,
+                    onPause = viewModel::pausePaddle,
+                    onCancel = viewModel::cancelPaddle
                 )
             }
 
@@ -62,7 +67,9 @@ private fun AssetCard(
     title: String,
     subtitle: String,
     statusFlow: kotlinx.coroutines.flow.Flow<DownloadState>,
-    onDownload: () -> Unit
+    onDownload: () -> Unit,
+    onPause: () -> Unit,
+    onCancel: () -> Unit
 ) {
     val state by remember(statusFlow) { statusFlow }.collectAsState(initial = DownloadState.Idle)
 
@@ -71,9 +78,7 @@ private fun AssetCard(
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(subtitle, style = MaterialTheme.typography.bodyMedium)
             StatusRow(state)
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = onDownload) { Text(stringResource(R.string.models_download)) }
-            }
+            DownloadActions(state, onDownload, onPause, onCancel)
         }
     }
 }
@@ -87,9 +92,38 @@ private fun LlmModelCard(model: LlmModelInfo, viewModel: ModelsViewModel) {
             Text(model.displayName, style = MaterialTheme.typography.titleMedium)
             Text("${model.approxSizeMb} MB · ${model.licenseNote}", style = MaterialTheme.typography.bodyMedium)
             StatusRow(state)
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = { viewModel.downloadLlmModel(model) }) { Text(stringResource(R.string.models_download)) }
+            DownloadActions(
+                state = state,
+                onDownload = { viewModel.downloadLlmModel(model) },
+                onPause = { viewModel.pauseLlmModel(model) },
+                onCancel = { viewModel.cancelLlmModel(model) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DownloadActions(
+    state: DownloadState,
+    onDownload: () -> Unit,
+    onPause: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+        when (state) {
+            is DownloadState.InProgress -> {
+                TextButton(onClick = onCancel) { Text(stringResource(R.string.models_cancel)) }
+                Button(onClick = onPause) { Text(stringResource(R.string.models_pause)) }
             }
+            is DownloadState.Failed -> {
+                // "Paused" is surfaced as Failed(message="Paused") by AssetDownloadManager.observe
+                // since WorkManager has no distinct paused state -- resuming just re-downloads,
+                // and DownloadWorker picks up the .part file left on disk automatically.
+                Button(onClick = onDownload) {
+                    Text(stringResource(if (state.message == "Paused") R.string.models_resume else R.string.models_retry))
+                }
+            }
+            else -> Button(onClick = onDownload) { Text(stringResource(R.string.models_download)) }
         }
     }
 }
@@ -97,9 +131,20 @@ private fun LlmModelCard(model: LlmModelInfo, viewModel: ModelsViewModel) {
 @Composable
 private fun StatusRow(state: DownloadState) {
     when (state) {
-        is DownloadState.InProgress -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+        is DownloadState.InProgress -> Column(Modifier.padding(top = 8.dp)) {
+            LinearProgressIndicator(
+                progress = { if (state.percent >= 0) state.percent / 100f else 0f },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                if (state.percent >= 0) "${state.percent}%" else "Downloading…",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
         is DownloadState.Completed -> Text("Downloaded", color = MaterialTheme.colorScheme.primary)
-        is DownloadState.Failed -> Text("Failed: ${state.message}", color = MaterialTheme.colorScheme.error)
+        is DownloadState.Failed -> if (state.message != "Paused") {
+            Text("Failed: ${state.message}", color = MaterialTheme.colorScheme.error)
+        }
         DownloadState.Idle -> Unit
     }
 }

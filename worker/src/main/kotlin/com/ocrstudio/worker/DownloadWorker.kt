@@ -1,6 +1,7 @@
 package com.ocrstudio.worker
 
 import android.content.Context
+import android.content.pm.ServiceInfo
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -11,6 +12,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -45,12 +47,18 @@ class DownloadWorker @AssistedInject constructor(
         val destFile = File(destPath)
         destFile.parentFile?.mkdirs()
         val tempFile = File(destFile.parentFile, "${destFile.name}.part")
+        // Resume from wherever a previous (paused/killed) attempt left off, if the server
+        // honors Range requests; otherwise the response below falls back to a full 200 restart.
+        val alreadyDownloaded = if (tempFile.exists()) tempFile.length() else 0L
 
         try {
             val connection = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 30_000
                 readTimeout = 30_000
                 instanceFollowRedirects = true
+                if (alreadyDownloaded > 0) {
+                    setRequestProperty("Range", "bytes=$alreadyDownloaded-")
+                }
             }
             connection.connect()
 
@@ -60,16 +68,27 @@ class DownloadWorker @AssistedInject constructor(
                 return@withContext Result.failure(workDataOf(KEY_ERROR_MESSAGE to message))
             }
 
-            val totalBytes = connection.contentLengthLong
-            var downloaded = 0L
-            var lastReportedAt = 0L
+            val isResuming = alreadyDownloaded > 0 && connection.responseCode == HttpURLConnection.HTTP_PARTIAL
+            if (alreadyDownloaded > 0 && !isResuming) {
+                // Server ignored the Range header (full 200 response) -- start over cleanly.
+                tempFile.delete()
+            }
+            val startOffset = if (isResuming) alreadyDownloaded else 0L
+            val totalBytes = when {
+                isResuming -> connection.contentLengthLong.let { if (it >= 0) it + startOffset else -1L }
+                else -> connection.contentLengthLong
+            }
+            var downloaded = startOffset
+            var lastReportedAt = startOffset
+            setProgress(progressData(downloaded, totalBytes))
 
             connection.inputStream.use { input ->
-                tempFile.outputStream().use { output ->
+                FileOutputStream(tempFile, isResuming).use { output ->
                     val buffer = ByteArray(64 * 1024)
                     while (true) {
                         if (isStopped) {
                             connection.disconnect()
+                            // Leave the .part file in place so the next enqueue can resume from here.
                             return@withContext Result.failure(workDataOf(KEY_ERROR_MESSAGE to "Cancelled"))
                         }
                         val read = input.read(buffer)
@@ -80,11 +99,13 @@ class DownloadWorker @AssistedInject constructor(
                             lastReportedAt = downloaded
                             val percent = if (totalBytes > 0) ((downloaded * 100) / totalBytes).toInt() else -1
                             setForeground(createForegroundInfo(label, percent))
+                            setProgress(progressData(downloaded, totalBytes))
                         }
                     }
                 }
             }
             connection.disconnect()
+            setProgress(progressData(downloaded, totalBytes))
 
             if (!tempFile.renameTo(destFile)) {
                 tempFile.copyTo(destFile, overwrite = true)
@@ -93,10 +114,17 @@ class DownloadWorker @AssistedInject constructor(
 
             Result.success(workDataOf(WorkerConstants.KEY_DOWNLOAD_DEST_PATH to destFile.absolutePath))
         } catch (t: Throwable) {
-            tempFile.delete()
+            // Keep the .part file on transient failures (timeout, dropped connection) so a retry
+            // can resume; only a genuinely corrupt partial download would need manual cleanup.
             Result.failure(workDataOf(KEY_ERROR_MESSAGE to (t.message ?: t.toString())))
         }
     }
+
+    private fun progressData(downloaded: Long, totalBytes: Long) = workDataOf(
+        WorkerConstants.KEY_BYTES_DOWNLOADED to downloaded,
+        WorkerConstants.KEY_TOTAL_BYTES to totalBytes,
+        WorkerConstants.KEY_PROGRESS_PERCENT to (if (totalBytes > 0) ((downloaded * 100) / totalBytes).toInt() else -1)
+    )
 
     private fun createForegroundInfo(label: String, percent: Int): ForegroundInfo {
         val notification = NotificationHelper.buildProgressNotification(
@@ -106,6 +134,10 @@ class DownloadWorker @AssistedInject constructor(
             percent,
             WorkerConstants.DOWNLOAD_NOTIFICATION_CHANNEL_ID
         )
-        return ForegroundInfo(WorkerConstants.DOWNLOAD_NOTIFICATION_ID, notification)
+        return ForegroundInfo(
+            WorkerConstants.DOWNLOAD_NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
     }
 }
