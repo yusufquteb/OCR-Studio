@@ -27,5 +27,9 @@ enum class PageSegmentationMode {
 data class OcrConfig(
     val language: String = "ara",
     val psm: PageSegmentationMode = PageSegmentationMode.AUTO,
-    val dataDir: String
+    val dataDir: String,
+    // Tesseract's LSTM models are trained assuming ~300dpi source text; without telling it the
+    // actual render DPI it falls back to guessing (often defaulting to a much lower value),
+    // which visibly degrades accuracy on higher-resolution scans.
+    val dpi: Int = 300
 )

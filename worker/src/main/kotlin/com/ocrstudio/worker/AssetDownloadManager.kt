@@ -101,6 +101,15 @@ class AssetDownloadManager @Inject constructor(
         File("$destPath.part").delete()
     }
 
+    /**
+     * Deletes a completed download's file and forgets the finished WorkManager job, so its
+     * [observe] flow drops back to [DownloadState.Idle] and the download button reappears.
+     */
+    fun delete(destination: File) {
+        destination.delete()
+        workManager.pruneWork()
+    }
+
     private fun enqueue(url: String, destination: File, label: String): String {
         val uniqueName = uniqueWorkNameFor(destination)
         val request = OneTimeWorkRequestBuilder<DownloadWorker>()

@@ -86,7 +86,7 @@ class BatchWorker @AssistedInject constructor(
             PageSegmentationMode.AUTO
         }
         val ocrConfig = com.ocrstudio.core.common.OcrConfig(
-            language = "ara", psm = psm, dataDir = applicationContext.filesDir.absolutePath
+            language = "ara", psm = psm, dataDir = applicationContext.filesDir.absolutePath, dpi = job.dpi
         )
         val primaryEngine = engineRegistry.engineById(job.ocrEngineId)
         primaryEngine.init(applicationContext, ocrConfig)
