@@ -42,6 +42,7 @@ class TesseractEngine @Inject constructor() : OcrEngine {
         val initialized = api.init(config.dataDir, config.language, TessBaseAPI.OEM_LSTM_ONLY)
         check(initialized) { "Failed to initialize Tesseract with language=${config.language} dataDir=${config.dataDir}" }
         api.pageSegMode = psm
+        api.setVariable("user_defined_dpi", config.dpi.toString())
         baseApi = api
     }
 

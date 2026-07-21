@@ -29,6 +29,7 @@ class ModelsViewModel @Inject constructor(
 
     fun pauseTesseract() = assetDownloadManager.pause(uniqueWorkNameFor(assetDownloadManager.tesseractArabicDestination()))
     fun cancelTesseract() = assetDownloadManager.cancel(uniqueWorkNameFor(assetDownloadManager.tesseractArabicDestination()))
+    fun deleteTesseract() = assetDownloadManager.delete(assetDownloadManager.tesseractArabicDestination())
 
     fun downloadPaddle() {
         assetDownloadManager.downloadPaddleModels()
@@ -39,6 +40,11 @@ class ModelsViewModel @Inject constructor(
 
     fun pausePaddle() = assetDownloadManager.pause(uniqueWorkNameFor(assetDownloadManager.paddleDetDestination()))
     fun cancelPaddle() = assetDownloadManager.cancel(uniqueWorkNameFor(assetDownloadManager.paddleDetDestination()))
+    fun deletePaddle() {
+        assetDownloadManager.delete(assetDownloadManager.paddleDetDestination())
+        assetDownloadManager.delete(assetDownloadManager.paddleRecDestination())
+        assetDownloadManager.delete(assetDownloadManager.paddleDictDestination())
+    }
 
     fun downloadLlmModel(model: LlmModelInfo) {
         assetDownloadManager.downloadLlmModel(model)
@@ -49,6 +55,7 @@ class ModelsViewModel @Inject constructor(
 
     fun pauseLlmModel(model: LlmModelInfo) = assetDownloadManager.pause(uniqueWorkNameFor(assetDownloadManager.llmModelDestination(model)))
     fun cancelLlmModel(model: LlmModelInfo) = assetDownloadManager.cancel(uniqueWorkNameFor(assetDownloadManager.llmModelDestination(model)))
+    fun deleteLlmModel(model: LlmModelInfo) = assetDownloadManager.delete(assetDownloadManager.llmModelDestination(model))
 
     private fun uniqueWorkNameFor(destination: java.io.File) = assetDownloadManager.uniqueWorkNameFor(destination)
 

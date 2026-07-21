@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,7 +42,8 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
                     statusFlow = viewModel.tesseractStatusFlow(),
                     onDownload = viewModel::downloadTesseract,
                     onPause = viewModel::pauseTesseract,
-                    onCancel = viewModel::cancelTesseract
+                    onCancel = viewModel::cancelTesseract,
+                    onDelete = viewModel::deleteTesseract
                 )
                 AssetCard(
                     title = "PaddleOCR Arabic",
@@ -47,7 +51,8 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
                     statusFlow = viewModel.paddleDetStatusFlow(),
                     onDownload = viewModel::downloadPaddle,
                     onPause = viewModel::pausePaddle,
-                    onCancel = viewModel::cancelPaddle
+                    onCancel = viewModel::cancelPaddle,
+                    onDelete = viewModel::deletePaddle
                 )
             }
 
@@ -69,7 +74,8 @@ private fun AssetCard(
     statusFlow: kotlinx.coroutines.flow.Flow<DownloadState>,
     onDownload: () -> Unit,
     onPause: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val state by remember(statusFlow) { statusFlow }.collectAsState(initial = DownloadState.Idle)
 
@@ -78,7 +84,7 @@ private fun AssetCard(
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(subtitle, style = MaterialTheme.typography.bodyMedium)
             StatusRow(state)
-            DownloadActions(state, onDownload, onPause, onCancel)
+            DownloadActions(state, onDownload, onPause, onCancel, onDelete)
         }
     }
 }
@@ -96,7 +102,8 @@ private fun LlmModelCard(model: LlmModelInfo, viewModel: ModelsViewModel) {
                 state = state,
                 onDownload = { viewModel.downloadLlmModel(model) },
                 onPause = { viewModel.pauseLlmModel(model) },
-                onCancel = { viewModel.cancelLlmModel(model) }
+                onCancel = { viewModel.cancelLlmModel(model) },
+                onDelete = { viewModel.deleteLlmModel(model) }
             )
         }
     }
@@ -107,7 +114,8 @@ private fun DownloadActions(
     state: DownloadState,
     onDownload: () -> Unit,
     onPause: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
         when (state) {
@@ -123,7 +131,15 @@ private fun DownloadActions(
                     Text(stringResource(if (state.message == "Paused") R.string.models_resume else R.string.models_retry))
                 }
             }
-            else -> Button(onClick = onDownload) { Text(stringResource(R.string.models_download)) }
+            is DownloadState.Completed -> {
+                IconButton(onClick = onDelete) {
+                    androidx.compose.material3.Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.models_delete)
+                    )
+                }
+            }
+            DownloadState.Idle -> Button(onClick = onDownload) { Text(stringResource(R.string.models_download)) }
         }
     }
 }

@@ -59,7 +59,7 @@ class ReviewViewModel @AssistedInject constructor(
                 val engine = engineRegistry.engineById(engineId)
                 engine.init(
                     context,
-                    OcrConfig(language = "ara", psm = PageSegmentationMode.AUTO, dataDir = context.filesDir.absolutePath)
+                    OcrConfig(language = "ara", psm = PageSegmentationMode.AUTO, dataDir = context.filesDir.absolutePath, dpi = dpi)
                 )
                 val parserProfile = parserProfileRegistry.byId(job.profileId)
                 pageProcessor.processPage(
