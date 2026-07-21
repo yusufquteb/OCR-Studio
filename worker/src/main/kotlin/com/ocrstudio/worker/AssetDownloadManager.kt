@@ -63,6 +63,7 @@ class AssetDownloadManager @Inject constructor(
             context.contentResolver.openInputStream(sourceUri)?.use { input ->
                 destination.outputStream().use { output -> input.copyTo(output) }
             } ?: error("Unable to open $sourceUri")
+            Unit
         }
     }
 

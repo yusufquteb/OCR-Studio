@@ -43,11 +43,20 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+        )
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        // OpenCV, Tesseract4Android, and pdfium-android each bundle their own copy of
+        // libc++_shared.so; without this the debug build fails at :app:mergeDebugNativeLibs
+        // with "2 files found with path 'lib/arm64-v8a/libc++_shared.so'".
+        jniLibs {
+            pickFirsts += "**/libc++_shared.so"
         }
     }
 }

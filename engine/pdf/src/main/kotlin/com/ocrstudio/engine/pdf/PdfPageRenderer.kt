@@ -40,35 +40,34 @@ class PdfPageRenderer @Inject constructor(
     suspend fun renderPage(handle: PdfDocumentHandle, pageIndex: Int, dpi: Int): AppResult<Bitmap> =
         withContext(Dispatchers.IO) {
             AppResult.runCatching {
+                // Pdfium-android has no per-page close: openPage()'d pages are released
+                // together when closeDocument() is called on the whole document.
                 handle.core.openPage(handle.document, pageIndex)
-                try {
-                    val pageWidthPoints = handle.core.getPageWidthPoint(handle.document, pageIndex)
-                    val pageHeightPoints = handle.core.getPageHeightPoint(handle.document, pageIndex)
 
-                    var width = (pageWidthPoints * dpi / POINTS_PER_INCH).toInt().coerceAtLeast(1)
-                    var height = (pageHeightPoints * dpi / POINTS_PER_INCH).toInt().coerceAtLeast(1)
+                val pageWidthPoints = handle.core.getPageWidthPoint(handle.document, pageIndex)
+                val pageHeightPoints = handle.core.getPageHeightPoint(handle.document, pageIndex)
 
-                    if (width > MAX_RENDER_WIDTH_PX) {
-                        val scale = MAX_RENDER_WIDTH_PX.toFloat() / width
-                        width = MAX_RENDER_WIDTH_PX
-                        height = (height * scale).toInt().coerceAtLeast(1)
-                    }
+                var width = (pageWidthPoints * dpi / POINTS_PER_INCH).toInt().coerceAtLeast(1)
+                var height = (pageHeightPoints * dpi / POINTS_PER_INCH).toInt().coerceAtLeast(1)
 
-                    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    handle.core.renderPageBitmap(
-                        handle.document,
-                        bitmap,
-                        pageIndex,
-                        0,
-                        0,
-                        width,
-                        height,
-                        true
-                    )
-                    bitmap
-                } finally {
-                    handle.core.closePage(handle.document, pageIndex)
+                if (width > MAX_RENDER_WIDTH_PX) {
+                    val scale = MAX_RENDER_WIDTH_PX.toFloat() / width
+                    width = MAX_RENDER_WIDTH_PX
+                    height = (height * scale).toInt().coerceAtLeast(1)
                 }
+
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                handle.core.renderPageBitmap(
+                    handle.document,
+                    bitmap,
+                    pageIndex,
+                    0,
+                    0,
+                    width,
+                    height,
+                    true
+                )
+                bitmap
             }
         }
 }

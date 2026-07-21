@@ -28,11 +28,13 @@ class CorrectionPipeline @Inject constructor(
         }
 
         var anyApplied = false
-        val rebuilt = chunks.joinToString(separator = "\n\n") { chunk ->
+        val correctedChunks = mutableListOf<String>()
+        for (chunk in chunks) {
             val result = llmCorrector.correct(chunk)
             if (result.accepted) anyApplied = true
-            result.text
+            correctedChunks.add(result.text)
         }
+        val rebuilt = correctedChunks.joinToString(separator = "\n\n")
 
         return PipelineResult(rebuilt, ruleResult.dictionaryHitRate, llmApplied = anyApplied)
     }
