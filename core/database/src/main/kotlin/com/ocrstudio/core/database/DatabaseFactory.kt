@@ -12,5 +12,9 @@ object DatabaseFactory {
     fun create(context: Context): AppDatabase =
         Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            // No shipped release depends on the schema surviving an upgrade yet, so a destructive
+            // rebuild (re-OCR your books) is an acceptable cost for schema changes pre-release --
+            // simpler and safer than hand-writing migrations for a schema still actively evolving.
+            .fallbackToDestructiveMigration()
             .build()
 }

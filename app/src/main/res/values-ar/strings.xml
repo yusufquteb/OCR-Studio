@@ -83,4 +83,10 @@
     <string name="settings_keep_images">الاحتفاظ بصور الصفحات افتراضياً</string>
     <string name="settings_battery_constraint">المعالجة أثناء الشحن فقط</string>
     <string name="settings_clear_cache">مسح التخزين المؤقت</string>
+    <string name="settings_online_correction_title">التصحيح عبر الإنترنت (اختياري)</string>
+    <string name="settings_online_correction_subtitle">يستخدم مفتاح API الخاص بك لاستدعاء نموذج عبر الإنترنت بدل المصحح المحلي. يتطلب اتصالاً بالإنترنت، ولا يُرسل أي شيء إلا إذا فعّلته.</string>
+    <string name="settings_online_correction_enable">تفعيل التصحيح عبر الإنترنت</string>
+    <string name="settings_online_correction_model">النموذج</string>
+    <string name="settings_online_correction_api_key">مفتاح API</string>
+    <string name="settings_online_correction_save">حفظ مفتاح API</string>
 </resources>

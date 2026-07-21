@@ -83,4 +83,10 @@
     <string name="settings_keep_images">Keep page images by default</string>
     <string name="settings_battery_constraint">Only process while charging</string>
     <string name="settings_clear_cache">Clear cache</string>
+    <string name="settings_online_correction_title">Online correction (optional)</string>
+    <string name="settings_online_correction_subtitle">Uses your own API key to call an online model instead of the on-device corrector. Requires internet; nothing is sent unless you enable this.</string>
+    <string name="settings_online_correction_enable">Enable online correction</string>
+    <string name="settings_online_correction_model">Model</string>
+    <string name="settings_online_correction_api_key">API key</string>
+    <string name="settings_online_correction_save">Save API key</string>
 </resources>

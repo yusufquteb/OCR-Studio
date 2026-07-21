@@ -21,5 +21,10 @@ data class PageRecord(
     val needsReview: Boolean,              // finalScore < 0.80
     val winningEngineId: String,           // which OCR engine's result was kept
     val imagePath: String?,                // kept only if "keep images" setting on
-    val processedAtEpochMs: Long
+    val processedAtEpochMs: Long,
+    // Raw (pre-correction) OCR words + pixel-space bounding boxes, JSON-encoded via
+    // OcrWordsSerializer. Used to build the searchable PDF export's invisible text layer,
+    // positioned over the original page render rather than the corrected text (which can
+    // differ in word count/spelling and would no longer line up with real boxes).
+    val rawWordsJson: String? = null
 )
