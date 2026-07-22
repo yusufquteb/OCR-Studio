@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
@@ -93,6 +94,9 @@ private fun ReviewPageCard(
             OutlinedTextField(
                 value = editedText,
                 onValueChange = { editedText = it },
+                // Base direction from content, not the app's ambient (possibly LTR) layout
+                // direction -- otherwise Arabic OCR text can visually misorder in the field.
+                textStyle = androidx.compose.ui.text.TextStyle.Default.copy(textDirection = TextDirection.Content),
                 modifier = Modifier.fillMaxWidth()
             )
 

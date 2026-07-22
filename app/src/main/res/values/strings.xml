@@ -91,6 +91,15 @@
     <string name="settings_online_correction_subtitle">Uses your own API key to call an online model instead of the on-device corrector. Requires internet; nothing is sent unless you enable this.</string>
     <string name="settings_online_correction_enable">Enable online correction</string>
     <string name="settings_online_correction_model">Model</string>
+    <string name="ai_settings_title">AI Settings</string>
+    <string name="ai_settings_subtitle">Configure AI providers and correction</string>
+    <string name="ai_settings_enabled">Enabled</string>
+    <string name="ai_settings_disabled">Disabled</string>
+    <string name="ai_settings_model_count">%1$d model</string>
+    <string name="ai_settings_model_count_plural">%1$d models</string>
+    <string name="ai_settings_use">Use</string>
+    <string name="ai_settings_get_key_banner">Get your API key from %1$s</string>
+    <string name="ai_settings_open">AI Settings</string>
     <string name="settings_online_correction_api_key">API key</string>
     <string name="settings_online_correction_save">Save API key</string>
     <string name="settings_online_correction_get_key">Get key</string>

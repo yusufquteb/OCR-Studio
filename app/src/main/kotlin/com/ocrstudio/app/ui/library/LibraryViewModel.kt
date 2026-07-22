@@ -10,10 +10,13 @@ import com.ocrstudio.core.common.AppContext
 import com.ocrstudio.core.common.JobStatus
 import com.ocrstudio.core.database.dao.BookJobDao
 import com.ocrstudio.core.database.entity.BookJob
+import com.ocrstudio.engine.ocr.EngineRegistry
 import com.ocrstudio.worker.JobScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import android.content.Context
@@ -24,11 +27,27 @@ class LibraryViewModel @Inject constructor(
     private val bookJobDao: BookJobDao,
     private val jobScheduler: JobScheduler,
     private val draftHolder: NewJobDraftHolder,
+    private val engineRegistry: EngineRegistry,
     @AppContext private val context: Context
 ) : ViewModel() {
 
     val jobs: StateFlow<List<BookJob>> = bookJobDao.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _availableEngineIds = MutableStateFlow<List<String>>(emptyList())
+    val availableEngineIds: StateFlow<List<String>> = _availableEngineIds.asStateFlow()
+
+    init {
+        refreshAvailableEngines()
+    }
+
+    /** Re-checks which OCR engines have a downloaded model; call again on screen resume so a
+     *  download that finished on the Models screen is reflected without recreating this ViewModel. */
+    fun refreshAvailableEngines() {
+        viewModelScope.launch {
+            _availableEngineIds.value = engineRegistry.availableEngineIds(context)
+        }
+    }
 
     fun onPdfPicked(uri: Uri) {
         context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -47,6 +66,13 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             bookJobDao.updateStatus(job.id, JobStatus.RUNNING, System.currentTimeMillis())
             jobScheduler.enqueueRemaining(job)
+        }
+    }
+
+    /** Only valid while the job isn't RUNNING -- call before resuming, not while it's in flight. */
+    fun changeEngine(jobId: String, engineId: String) {
+        viewModelScope.launch {
+            bookJobDao.updateOcrEngine(jobId, engineId, System.currentTimeMillis())
         }
     }
 

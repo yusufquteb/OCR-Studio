@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ocrstudio.app.R
+import com.ocrstudio.app.ui.aisettings.AiSettingsScreen
 import com.ocrstudio.app.ui.export.ExportScreen
 import com.ocrstudio.app.ui.library.LibraryScreen
 import com.ocrstudio.app.ui.models.ModelsScreen
@@ -79,7 +80,12 @@ fun OcrStudioNavHost() {
                 ReviewScreen(jobId = jobId, onBack = { navController.popBackStack() })
             }
             composable(Destination.Search.route) { SearchScreen() }
-            composable(Destination.Models.route) { ModelsScreen() }
+            composable(Destination.Models.route) {
+                ModelsScreen(onOpenAiSettings = { navController.navigate(Destination.AiSettings.route) })
+            }
+            composable(Destination.AiSettings.route) {
+                AiSettingsScreen(onBack = { navController.popBackStack() })
+            }
             composable(Destination.Export.route) { ExportScreen() }
             composable(Destination.Settings.route) { SettingsScreen() }
         }

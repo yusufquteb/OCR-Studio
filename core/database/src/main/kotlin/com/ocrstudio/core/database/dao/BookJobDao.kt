@@ -37,4 +37,9 @@ interface BookJobDao {
 
     @Query("UPDATE book_jobs SET errorCount = errorCount + 1, updatedAtEpochMs = :updatedAt WHERE id = :jobId")
     suspend fun incrementErrorCount(jobId: String, updatedAt: Long)
+
+    /** Only meant to be called while the job is not RUNNING -- a batch already in flight is
+     *  using the old engine instance and won't pick this up until its next enqueue. */
+    @Query("UPDATE book_jobs SET ocrEngineId = :engineId, updatedAtEpochMs = :updatedAt WHERE id = :jobId")
+    suspend fun updateOcrEngine(jobId: String, engineId: String, updatedAt: Long)
 }

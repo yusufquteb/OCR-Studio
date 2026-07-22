@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -64,11 +65,15 @@ fun NewJobWizardScreen(
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.new_job_title)) }) }) { padding ->
         LazyColumn(modifier = Modifier.padding(padding).padding(16.dp)) {
             item {
-                Text(pdfName ?: "No PDF selected", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    pdfName ?: "No PDF selected",
+                    style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content)
+                )
                 OutlinedTextField(
                     value = form.title,
                     onValueChange = { value -> viewModel.update { it.copy(title = value) } },
                     label = { Text(stringResource(R.string.new_job_book_title)) },
+                    textStyle = androidx.compose.ui.text.TextStyle.Default.copy(textDirection = TextDirection.Content),
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 )
             }

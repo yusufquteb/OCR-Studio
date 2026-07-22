@@ -76,6 +76,16 @@ class RuleEngineTest {
     }
 
     @Test
+    fun `fully vocalized word is passed through unchanged rather than rewritten`() {
+        // "كَتَبَ" (fatha on each letter) is not itself in the dictionary (only the undiacritized
+        // "كتب" is), but it must never be rewritten -- doing so would risk misaligning the
+        // harakat marks with different base letters.
+        val (word, found) = ruleEngine.correctWord("كَتَبَ")
+        assertEquals("كَتَبَ", word)
+        assertTrue(found) // still counted as a dictionary hit via the undiacritized form
+    }
+
+    @Test
     fun `empty text yields perfect hit rate and empty output`() {
         val result = ruleEngine.correctText("")
         assertEquals(1.0f, result.dictionaryHitRate, 0.001f)

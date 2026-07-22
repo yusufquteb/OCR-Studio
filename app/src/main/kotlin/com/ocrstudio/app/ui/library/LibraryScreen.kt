@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,20 +18,31 @@ import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.ocrstudio.app.R
 import com.ocrstudio.core.common.JobStatus
 import com.ocrstudio.core.database.entity.BookJob
@@ -45,6 +57,18 @@ fun LibraryScreen(
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val jobs by viewModel.jobs.collectAsState()
+    val availableEngines by viewModel.availableEngineIds.collectAsState()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshAvailableEngines()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val pickPdfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -73,9 +97,11 @@ fun LibraryScreen(
                 items(jobs, key = { it.id }) { job ->
                     JobListItem(
                         job = job,
+                        availableEngines = availableEngines,
                         onClick = { onOpenJob(job.id) },
                         onPause = { viewModel.pauseJob(job.id) },
-                        onResume = { viewModel.resumeJob(job) }
+                        onResume = { viewModel.resumeJob(job) },
+                        onChangeEngine = { engineId -> viewModel.changeEngine(job.id, engineId) }
                     )
                 }
             }
@@ -86,9 +112,11 @@ fun LibraryScreen(
 @Composable
 private fun JobListItem(
     job: BookJob,
+    availableEngines: List<String>,
     onClick: () -> Unit,
     onPause: () -> Unit,
-    onResume: () -> Unit
+    onResume: () -> Unit,
+    onChangeEngine: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -101,7 +129,11 @@ private fun JobListItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(job.title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                Text(
+                    job.title,
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                        .copy(textDirection = TextDirection.Content)
+                )
                 statusChip(job.status)
             }
             Text("${job.currentPage} / ${job.pageCount} pages")
@@ -110,6 +142,26 @@ private fun JobListItem(
                     progress = { job.currentPage.toFloat() / job.pageCount },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                 )
+            }
+            // The OCR engine is only safe to change while no batch for this job is currently
+            // running (it's read once per batch at the top of BatchWorker.doWork()) -- offer
+            // the picker for every non-RUNNING status, including a job that just FAILED because
+            // its original engine had no downloaded model.
+            if (job.status != JobStatus.RUNNING && job.status != JobStatus.DONE && availableEngines.isNotEmpty()) {
+                var engineMenuExpanded by remember(job.id) { mutableStateOf(false) }
+                Box(modifier = Modifier.padding(top = 4.dp)) {
+                    TextButton(onClick = { engineMenuExpanded = true }) {
+                        Text("${stringResource(R.string.new_job_ocr_engine)}: ${job.ocrEngineId}")
+                    }
+                    DropdownMenu(expanded = engineMenuExpanded, onDismissRequest = { engineMenuExpanded = false }) {
+                        availableEngines.forEach { engineId ->
+                            DropdownMenuItem(
+                                text = { Text(engineId) },
+                                onClick = { engineMenuExpanded = false; onChangeEngine(engineId) }
+                            )
+                        }
+                    }
+                }
             }
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 when (job.status) {

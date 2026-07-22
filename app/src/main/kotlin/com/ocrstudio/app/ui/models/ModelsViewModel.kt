@@ -45,7 +45,20 @@ class ModelsViewModel @Inject constructor(
 
     fun setOnlineCorrectionEnabled(enabled: Boolean) = viewModelScope.launch { onlineCorrectionRepository.setEnabled(enabled) }
     fun setOnlineModelId(modelId: String) = viewModelScope.launch { onlineCorrectionRepository.setModelId(modelId) }
-    fun setOnlineApiKey(apiKey: String) = onlineCorrectionRepository.setApiKey(apiKey)
+
+    /** Turns this provider's chosen model on as the one active corrector, turning any other
+     *  provider's activation off (only one provider is ever actually used at a time). */
+    fun enableProvider(provider: OnlineProvider, modelId: String) {
+        viewModelScope.launch {
+            onlineCorrectionRepository.setModelId(modelId)
+            onlineCorrectionRepository.setEnabled(true)
+        }
+    }
+
+    fun disableOnlineCorrection() = setOnlineCorrectionEnabled(false)
+
+    fun apiKeyFor(provider: OnlineProvider): String = onlineCorrectionRepository.apiKeyFor(provider)
+    fun setApiKeyFor(provider: OnlineProvider, apiKey: String) = onlineCorrectionRepository.setApiKeyFor(provider, apiKey)
 
     /** Refresh: asks the provider which of our curated models it currently lists as live. */
     fun refreshModels(provider: OnlineProvider, apiKey: String) {

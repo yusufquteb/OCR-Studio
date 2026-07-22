@@ -3,20 +3,22 @@ package com.ocrstudio.core.common
 /**
  * Static catalog of downloadable LiteRT-LM correction models shown on the Models screen.
  *
- * URLs were re-verified (2026-07) against each repo's actual file listing (HuggingFace itself
- * isn't reachable from every build/dev environment, so this was done via search-engine-indexed
- * page snapshots of the exact blob URLs, which is strong evidence the files exist, though not
- * a substitute for an app-side HTTP HEAD check). Two problems were found and fixed vs. the
- * original spec:
- *   - "litert-community/Qwen3-1.7B" does not appear to exist at all; replaced with the
- *     confirmed-real litert-community/Qwen3-8B repo (bumped to the HIGH RAM tier accordingly).
- *   - Qwen3-0.6B's actual filename is "Qwen3-0.6B.litertlm", not the guessed
- *     "*_multi-prefill-seq_q8_ekv1280.litertlm".
+ * HuggingFace is unreachable from this sandbox (network policy blocks it entirely), so these
+ * URLs can only be checked indirectly via search-engine snapshots, and confirmed known-bad ones
+ * are removed once a user reports the real HTTP status from a device that can reach HF:
+ *   - "litert-community/Qwen3-8B" 404s on `Qwen3-8B.litertlm` (confirmed by a real download
+ *     attempt) -- removed rather than guess another filename. litert-community's Qwen3 repos
+ *     appear to ship per-chip files (e.g. a Qwen3-0.6B discussion thread references
+ *     "Qwen3-0.6B.mediatek.mt6993.litertlm"), so the *0.6B* entry below may turn out to need the
+ *     same treatment -- if it 404s too, use the Models screen's custom-URL/local-file fallback
+ *     and report the exact filename that does exist so this catalog can be corrected.
  *   - gemma-3n-E2B-it-litert-lm is published under the "google" org, not "litert-community".
  *   - gemma-4-E2B-it-litert-lm only ships per-SoC files (Tensor G5 / Qualcomm / Intel) plus a
  *     "-web" build; there is no single generic-Android filename. The "-web" build is used here
  *     as the least hardware-locked option — if it underperforms on a given device, use the
  *     Models screen's "paste custom URL" fallback to pick a chip-specific file instead.
+ *   - Gemma 3n E2B's HTTP 401 is expected, not a bug: it's a gated model and requires accepting
+ *     Google's Gemma terms on the user's own Hugging Face account before it can be downloaded.
  *
  * All of these are optional downloads behind AssetDownloadManager, which already handles 404s
  * gracefully with a custom-URL / local-file-import fallback, so a wrong URL here never crashes
@@ -32,15 +34,6 @@ object LlmModelCatalog {
             approxSizeMb = 700,
             ramRequirement = RamRequirement.LOW,
             licenseNote = "Qwen — Apache 2.0, no gate"
-        ),
-        LlmModelInfo(
-            id = "qwen3_8b",
-            displayName = "Qwen3 8B",
-            downloadUrl = "https://huggingface.co/litert-community/Qwen3-8B/resolve/main/Qwen3-8B.litertlm",
-            fileName = "qwen3-8b.litertlm",
-            approxSizeMb = 8500,
-            ramRequirement = RamRequirement.HIGH,
-            licenseNote = "Qwen — Apache 2.0, no gate. Highest quality of the Qwen options."
         ),
         LlmModelInfo(
             id = "gemma_3n_e2b",
