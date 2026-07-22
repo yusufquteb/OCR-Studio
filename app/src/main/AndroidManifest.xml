@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Only used by the one-time in-app model/asset downloader; the rest of the app is 100% offline. -->
+    <!--
+      Used by the one-time in-app model/asset downloader, and (only if the user explicitly
+      enables it in Settings and supplies their own API key) by the optional online-correction
+      path. The app is otherwise 100% offline; online correction is opt-in and off by default.
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

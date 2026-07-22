@@ -1,29 +1,54 @@
 package com.ocrstudio.app.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
+import com.ocrstudio.core.common.OnlineModelInfo
+import com.ocrstudio.core.common.OnlineProvider
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsState()
+    val onlineConfig by viewModel.onlineCorrectionConfig.collectAsState()
+    val modelAvailability by viewModel.modelAvailability.collectAsState()
+    val isRefreshingModels by viewModel.isRefreshingModels.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
@@ -49,6 +74,108 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             Button(onClick = viewModel::clearCache, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
                 Text(stringResource(R.string.settings_clear_cache))
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text(stringResource(R.string.settings_online_correction_title), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.settings_online_correction_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            SettingsRow(
+                stringResource(R.string.settings_online_correction_enable),
+                onlineConfig.enabled,
+                viewModel::setOnlineCorrectionEnabled
+            )
+
+            val selectedModel: OnlineModelInfo? = viewModel.onlineModels.find { it.id == onlineConfig.modelId }
+            var selectedProvider by remember(selectedModel) {
+                mutableStateOf(selectedModel?.provider ?: OnlineProvider.GOOGLE_AI_STUDIO)
+            }
+
+            LazyRow(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                items(OnlineProvider.entries) { provider ->
+                    FilterChip(
+                        selected = selectedProvider == provider,
+                        onClick = { selectedProvider = provider },
+                        label = { Text(provider.displayName) },
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                }
+            }
+
+            val providerModels = viewModel.onlineModels.filter { it.provider == selectedProvider }
+            val availableCount = providerModels.count { modelAvailability[it.id] == true }
+            val checkedCount = providerModels.count { modelAvailability.containsKey(it.id) }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedButton(onClick = {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(selectedProvider.keyPageUrl)))
+                }) { Text(stringResource(R.string.settings_online_correction_get_key)) }
+
+                OutlinedButton(
+                    onClick = { viewModel.refreshModels(selectedProvider, onlineConfig.apiKey) },
+                    enabled = !isRefreshingModels
+                ) {
+                    if (isRefreshingModels) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp).padding(end = 8.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                    Text(stringResource(R.string.settings_online_correction_refresh))
+                }
+            }
+            if (checkedCount > 0) {
+                Text(
+                    stringResource(R.string.settings_online_correction_available_count, availableCount, providerModels.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+
+            var modelMenuExpanded by remember { mutableStateOf(false) }
+            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                TextButton(onClick = { modelMenuExpanded = true }) {
+                    Text(
+                        "${stringResource(R.string.settings_online_correction_model)}: " +
+                            (selectedModel?.displayName ?: "—")
+                    )
+                }
+                DropdownMenu(expanded = modelMenuExpanded, onDismissRequest = { modelMenuExpanded = false }) {
+                    providerModels.forEach { model ->
+                        val mark = when (modelAvailability[model.id]) {
+                            true -> " ✓"
+                            false -> " ✗"
+                            null -> ""
+                        }
+                        DropdownMenuItem(
+                            text = { Text("${model.displayName}$mark") },
+                            onClick = { modelMenuExpanded = false; viewModel.setOnlineModelId(model.id) }
+                        )
+                    }
+                }
+            }
+            selectedModel?.let {
+                Text(it.note, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
+            }
+
+            var apiKeyField by remember(onlineConfig.apiKey) { mutableStateOf(onlineConfig.apiKey) }
+            OutlinedTextField(
+                value = apiKeyField,
+                onValueChange = { apiKeyField = it },
+                label = { Text(stringResource(R.string.settings_online_correction_api_key)) },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            )
+            Button(
+                onClick = { viewModel.setOnlineApiKey(apiKeyField) },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text(stringResource(R.string.settings_online_correction_save)) }
         }
     }
 }

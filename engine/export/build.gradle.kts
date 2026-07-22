@@ -23,6 +23,7 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:database"))
+    implementation(project(":engine:pdf"))
 
     implementation(libs.core.ktx)
     implementation(libs.coroutines.core)

@@ -36,6 +36,10 @@ dependencies {
     implementation(libs.work.runtime.ktx)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+    implementation(libs.datastore.preferences)
+    // Encrypts the user's own online-correction API key at rest; everything else this app
+    // stores (settings, job config) is non-sensitive and stays in plain DataStore.
+    implementation(libs.security.crypto)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

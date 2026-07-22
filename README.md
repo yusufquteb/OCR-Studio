@@ -5,9 +5,12 @@ large, degraded, old-scan books — with an image preprocessing pipeline, rule-b
 on-device LLM correction, validation scoring, a manual review screen, full-text search, and
 multi-format export.
 
-The app runs 100% offline. The only network access is a one-time, user-initiated download of
-OCR/LLM model assets (Tesseract Arabic traineddata, PaddleOCR ONNX models, LiteRT-LM correction
-models) — never anything else.
+The app is offline-first: OCR, preprocessing, rule-based correction, search, and every export
+format work with zero network access. There are exactly two opt-in exceptions, both off unless
+the user explicitly acts: a one-time download of OCR/LLM model assets (Tesseract Arabic
+traineddata, PaddleOCR ONNX models, LiteRT-LM correction models), and an optional online
+correction path (Settings → Online correction) that calls a provider of the user's choice
+(Google AI Studio, OpenRouter, NVIDIA NIM, or Hugging Face Inference) using their own API key.
 
 ## Requirements
 
@@ -43,7 +46,9 @@ Multi-module Gradle project (Kotlin DSL), version catalog at `gradle/libs.versio
 :engine:ocr          OcrEngine interface + TesseractEngine + PaddleOcrEngine (ONNX)
 :engine:parser       ParserProfile interface + Generic/MujamMufahras/Hadith/Tafsir profiles
 :engine:correction   RuleEngine (dictionary + confusion-map) + LiteRT-LM corrector (flagged)
-:engine:export       Streaming export plugins: SQLite, JSON, TXT, Markdown, CSV, XML
+                     + optional online corrector (Gemini/OpenRouter/NVIDIA NIM/Hugging Face)
+:engine:export       Streaming export plugins: SQLite, JSON, TXT, Markdown, CSV, XML,
+                     Searchable PDF (original page image + invisible positioned text layer)
 :worker              WorkManager batch pipeline, asset/model downloader, job recovery
 ```
 
@@ -93,9 +98,18 @@ Layer 1 (always on): dictionary-guided normalization (tatweel removal, ligature 
 confusion-map (ب/ت/ث/ن, ر/ز, د/ذ, ح/ج/خ, ع/غ, ص/ض, ط/ظ, س/ش) — a candidate substitution is only
 ever accepted if the original word is absent from the dictionary and the candidate is present.
 
-Layer 2 (optional): chunked (~1500 chars, paragraph-aligned) correction via a LiteRT-LM model,
-with mandatory defensive post-processing — output is rejected (falling back to the rule-engine
-text) if it differs in length by more than 15% or contains Latin sentences.
+Layer 2 (optional, on-device): chunked (~1500 chars, paragraph-aligned) correction via a
+LiteRT-LM model, with mandatory defensive post-processing — output is rejected (falling back to
+the rule-engine text) if it differs in length by more than 15% or contains Latin sentences. The
+same validation (`LlmOutputValidator`) gates every corrector, online or offline.
+
+Layer 2 alternative (optional, online): Settings → Online correction lets the user pick a
+provider (Google AI Studio/Gemini, OpenRouter, NVIDIA NIM, or Hugging Face Inference) and one of
+a curated set of Arabic-capable models (`OnlineModelCatalog` — includes Jais, a model trained
+specifically for Arabic, alongside strong multilingual options like Gemini and Qwen), paste their
+own API key, and enable it. When enabled it's used instead of the on-device LiteRT-LM path for
+that job; when disabled (the default) nothing is ever sent over the network for correction. The
+API key is stored in `EncryptedSharedPreferences`, never in plain DataStore.
 
 ### Search
 
@@ -147,6 +161,10 @@ a few spots carry real but bounded risk and are worth a first look if `assembleD
 5. Diacritics-insensitive FTS: implemented (`unicode61 remove_diacritics=2`).
 6. JSON + SQLite export with matching page counts: implemented (streaming exporters, page count
    returned and recorded in `ExportRecord`).
+6a. Layout-preserving export: `SearchablePdfExportPlugin` re-renders each page from the original
+    source PDF at the job's DPI (same render used during OCR) and overlays the raw OCR words as
+    invisible, positioned text -- margins, page numbers, and layout are exact because the visible
+    content is the original page image, not a reconstruction.
 7. Rule-based-only correction works with no LLM model downloaded: implemented (`NoOpCorrector`
    is the default binding).
 8. RTL/Arabic locale: `android:supportsRtl="true"`, full English + Arabic `strings.xml`.
