@@ -91,6 +91,15 @@
     <string name="settings_online_correction_subtitle">يستخدم مفتاح API الخاص بك لاستدعاء نموذج عبر الإنترنت بدل المصحح المحلي. يتطلب اتصالاً بالإنترنت، ولا يُرسل أي شيء إلا إذا فعّلته.</string>
     <string name="settings_online_correction_enable">تفعيل التصحيح عبر الإنترنت</string>
     <string name="settings_online_correction_model">النموذج</string>
+    <string name="ai_settings_title">إعدادات الذكاء الاصطناعي</string>
+    <string name="ai_settings_subtitle">إعداد مزوّدي الذكاء الاصطناعي والتصحيح</string>
+    <string name="ai_settings_enabled">مفعّل</string>
+    <string name="ai_settings_disabled">غير مفعّل</string>
+    <string name="ai_settings_model_count">نموذج واحد</string>
+    <string name="ai_settings_model_count_plural">%1$d نماذج</string>
+    <string name="ai_settings_use">استخدام</string>
+    <string name="ai_settings_get_key_banner">احصل على مفتاح API من %1$s</string>
+    <string name="ai_settings_open">إعدادات الذكاء الاصطناعي</string>
     <string name="settings_online_correction_api_key">مفتاح API</string>
     <string name="settings_online_correction_save">حفظ مفتاح API</string>
     <string name="settings_online_correction_get_key">الحصول على مفتاح</string>

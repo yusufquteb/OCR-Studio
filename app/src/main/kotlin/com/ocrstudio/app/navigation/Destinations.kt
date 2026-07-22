@@ -5,6 +5,7 @@ sealed class Destination(val route: String) {
     data object NewJobWizard : Destination("new_job_wizard")
     data object Search : Destination("search")
     data object Models : Destination("models")
+    data object AiSettings : Destination("ai_settings")
     data object Export : Destination("export")
     data object Settings : Destination("settings")
 
