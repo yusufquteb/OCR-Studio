@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.withStyle
 import com.ocrstudio.core.ui.theme.ErrorColor
 import com.ocrstudio.core.ui.theme.SuccessColor
@@ -95,5 +96,13 @@ fun WordDiffText(rawText: String, correctedText: String, modifier: Modifier = Mo
             if (index != aligned.lastIndex) append(" ")
         }
     }
-    Text(text = annotated, style = MaterialTheme.typography.bodyLarge, modifier = modifier)
+    Text(
+        text = annotated,
+        // Base the paragraph's bidi direction on its actual content rather than the app's
+        // ambient LayoutDirection (which is LTR whenever the device locale is English) --
+        // otherwise this Arabic OCR text can visually misorder even though the underlying
+        // string itself is correct.
+        style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content),
+        modifier = modifier
+    )
 }

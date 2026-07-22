@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
@@ -101,7 +102,11 @@ private fun JobListItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(job.title, style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                Text(
+                    job.title,
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                        .copy(textDirection = TextDirection.Content)
+                )
                 statusChip(job.status)
             }
             Text("${job.currentPage} / ${job.pageCount} pages")

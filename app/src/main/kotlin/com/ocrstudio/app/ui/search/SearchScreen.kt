@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
@@ -56,7 +57,7 @@ private fun SearchResultItem(hit: PageSearchHit) {
             Text("Page ${hit.pageNumber}", style = MaterialTheme.typography.labelMedium)
             Text(
                 hit.correctedText.take(200),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
                 maxLines = 3
             )
         }
