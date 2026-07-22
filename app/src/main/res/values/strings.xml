@@ -89,4 +89,7 @@
     <string name="settings_online_correction_model">Model</string>
     <string name="settings_online_correction_api_key">API key</string>
     <string name="settings_online_correction_save">Save API key</string>
+    <string name="settings_online_correction_get_key">Get key</string>
+    <string name="settings_online_correction_refresh">Refresh</string>
+    <string name="settings_online_correction_available_count">%1$d of %2$d models available</string>
 </resources>

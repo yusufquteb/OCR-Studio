@@ -89,4 +89,7 @@
     <string name="settings_online_correction_model">النموذج</string>
     <string name="settings_online_correction_api_key">مفتاح API</string>
     <string name="settings_online_correction_save">حفظ مفتاح API</string>
+    <string name="settings_online_correction_get_key">الحصول على مفتاح</string>
+    <string name="settings_online_correction_refresh">تحديث</string>
+    <string name="settings_online_correction_available_count">%1$d من %2$d نموذج متاح</string>
 </resources>

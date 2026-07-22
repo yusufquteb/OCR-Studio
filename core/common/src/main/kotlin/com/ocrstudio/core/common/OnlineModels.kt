@@ -6,11 +6,39 @@ package com.ocrstudio.core.common
  * for the app to function (rule-based correction and the offline LiteRT-LM path both still
  * work with no network at all).
  */
-enum class OnlineProvider(val displayName: String, val chatCompletionsUrl: String) {
-    GOOGLE_AI_STUDIO("Google AI Studio (Gemini)", "https://generativelanguage.googleapis.com/v1beta/models"),
-    OPENROUTER("OpenRouter", "https://openrouter.ai/api/v1/chat/completions"),
-    NVIDIA_NIM("NVIDIA NIM", "https://integrate.api.nvidia.com/v1/chat/completions"),
-    HUGGING_FACE("Hugging Face Inference", "https://api-inference.huggingface.co/models")
+enum class OnlineProvider(
+    val displayName: String,
+    val chatCompletionsUrl: String,
+    /** Where the "Get key" button sends the user to create/copy an API key for this provider. */
+    val keyPageUrl: String,
+    /** Provider's own models-listing endpoint, used by the "Refresh" check -- null if the
+     *  provider has no generic listing endpoint (existence is checked per-model instead). */
+    val modelsListUrl: String?
+) {
+    GOOGLE_AI_STUDIO(
+        "Google AI Studio (Gemini)",
+        "https://generativelanguage.googleapis.com/v1beta/models",
+        "https://aistudio.google.com/apikey",
+        "https://generativelanguage.googleapis.com/v1beta/models"
+    ),
+    OPENROUTER(
+        "OpenRouter",
+        "https://openrouter.ai/api/v1/chat/completions",
+        "https://openrouter.ai/keys",
+        "https://openrouter.ai/api/v1/models"
+    ),
+    NVIDIA_NIM(
+        "NVIDIA NIM",
+        "https://integrate.api.nvidia.com/v1/chat/completions",
+        "https://build.nvidia.com/",
+        "https://integrate.api.nvidia.com/v1/models"
+    ),
+    HUGGING_FACE(
+        "Hugging Face Inference",
+        "https://api-inference.huggingface.co/models",
+        "https://huggingface.co/settings/tokens",
+        null
+    )
 }
 
 data class OnlineModelInfo(
