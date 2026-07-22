@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
+import com.ocrstudio.core.common.CorrectorKind
 import com.ocrstudio.core.common.LlmModelInfo
 import com.ocrstudio.worker.DownloadState
 
@@ -83,8 +84,8 @@ fun ModelsScreen(onOpenAiSettings: () -> Unit, viewModel: ModelsViewModel = hilt
 
 @Composable
 private fun OnlineCorrectionEntryCard(viewModel: ModelsViewModel, onOpenAiSettings: () -> Unit) {
-    val onlineConfig by viewModel.onlineCorrectionConfig.collectAsState()
-    val activeModel = remember(onlineConfig.modelId) { viewModel.onlineModels.find { it.id == onlineConfig.modelId } }
+    val chain by viewModel.correctionChain.collectAsState()
+    val onlineCount = remember(chain) { chain.count { it.kind == CorrectorKind.ONLINE } }
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -97,8 +98,10 @@ private fun OnlineCorrectionEntryCard(viewModel: ModelsViewModel, onOpenAiSettin
             Column {
                 Text(stringResource(R.string.settings_online_correction_subtitle), style = MaterialTheme.typography.bodySmall)
                 Text(
-                    if (onlineConfig.enabled && activeModel != null) {
-                        "${activeModel.provider.displayName} · ${activeModel.displayName}"
+                    if (onlineCount == 1) {
+                        stringResource(R.string.ai_settings_model_count, onlineCount)
+                    } else if (onlineCount > 1) {
+                        stringResource(R.string.ai_settings_model_count_plural, onlineCount)
                     } else {
                         stringResource(R.string.ai_settings_disabled)
                     },
@@ -138,6 +141,8 @@ private fun AssetCard(
 @Composable
 private fun LlmModelCard(model: LlmModelInfo, viewModel: ModelsViewModel) {
     val state by remember(model.id) { viewModel.llmModelStatusFlow(model) }.collectAsState(initial = DownloadState.Idle)
+    val chain by viewModel.correctionChain.collectAsState()
+    val inChain = remember(chain, model.id) { chain.any { it.kind == CorrectorKind.OFFLINE && it.modelId == model.id } }
 
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -151,6 +156,21 @@ private fun LlmModelCard(model: LlmModelInfo, viewModel: ModelsViewModel) {
                 onCancel = { viewModel.cancelLlmModel(model) },
                 onDelete = { viewModel.deleteLlmModel(model) }
             )
+            if (state is DownloadState.Completed) {
+                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(
+                        onClick = { viewModel.toggleOfflineInChain(model) },
+                        enabled = inChain || !viewModel.isChainFull
+                    ) {
+                        Text(
+                            stringResource(
+                                if (inChain) R.string.ai_settings_remove_from_chain
+                                else R.string.ai_settings_add_to_chain
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 }

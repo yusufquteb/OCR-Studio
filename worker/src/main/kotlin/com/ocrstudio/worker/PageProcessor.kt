@@ -4,6 +4,8 @@ import android.content.Context
 import com.ocrstudio.core.common.AppContext
 import com.ocrstudio.core.common.AssetPaths
 import com.ocrstudio.core.common.BookContext
+import com.ocrstudio.core.common.CorrectionChainEntry
+import com.ocrstudio.core.common.CorrectorKind
 import com.ocrstudio.core.common.OcrWordsSerializer
 import com.ocrstudio.core.common.OnlineModelCatalog
 import com.ocrstudio.core.common.PreprocessConfig
@@ -39,6 +41,7 @@ class PageProcessor @Inject constructor(
     private val correctionPipeline: CorrectionPipeline,
     private val pageRepository: PageRepository,
     private val onlineCorrectionRepository: OnlineCorrectionRepository,
+    private val correctionChainRepository: CorrectionChainRepository,
     @AppContext private val context: Context
 ) {
     suspend fun processPage(
@@ -52,7 +55,7 @@ class PageProcessor @Inject constructor(
         parserProfile: ParserProfile,
         llmModelId: String?
     ): Result<PageRecord> = runCatching {
-        val llmCorrector = openLlmCorrector(llmModelId)
+        val llmCorrectors = openLlmCorrectors(llmModelId)
         try {
             val renderResult = pdfPageRenderer.renderPage(handle, pageNumber - 1, dpi)
             val rawBitmap = renderResult.getOrNull() ?: error("Failed to render page $pageNumber")
@@ -67,7 +70,7 @@ class PageProcessor @Inject constructor(
             val bookContext = BookContext(bookId = bookId, jobId = jobId, pageNumber = pageNumber)
             val parsedPage = parserProfile.parse(recognition.page, bookContext)
 
-            val correction = correctionPipeline.run(parsedPage.text, llmCorrector)
+            val correction = correctionPipeline.run(parsedPage.text, llmCorrectors)
 
             val validation = ValidationScorer.score(
                 ocrConfidence = recognition.page.meanConfidence,
@@ -130,28 +133,55 @@ class PageProcessor @Inject constructor(
             pageRepository.persistPage(pageRecord, words, roots, references)
             pageRecord
         } finally {
-            llmCorrector?.close()
+            llmCorrectors.forEach { it.close() }
         }
     }
 
     /**
-     * Online correction (if the user opted in and configured a provider/model/API key) takes
-     * priority over the on-device LiteRT-LM path -- both are optional layers on top of the
-     * always-on rule engine, never a requirement, so preferring whichever one is actually usable
-     * is fine.
+     * Builds the correction fallback chain: if the user has configured one (Models -> AI
+     * Settings), every OFFLINE entry runs before every ONLINE entry, per their explicit
+     * requirement that on-device models are always tried first. If no chain is configured, falls
+     * back to the legacy single-model behavior (the one globally "active" online model, else
+     * this job's chosen offline model) so existing jobs/setups keep working unchanged.
      */
-    private suspend fun openLlmCorrector(llmModelId: String?): LlmCorrector? {
+    private suspend fun openLlmCorrectors(llmModelId: String?): List<LlmCorrector> {
+        val chain = correctionChainRepository.currentChain()
+        if (chain.isNotEmpty()) {
+            return correctionChainRepository.executionOrder(chain).mapNotNull { buildCorrector(it) }
+        }
+
         val onlineConfig = onlineCorrectionRepository.currentConfig()
         if (onlineConfig.isUsable) {
             val modelInfo = OnlineModelCatalog.byId(onlineConfig.modelId!!)
             if (modelInfo != null) {
-                return OnlineLlmCorrector(modelInfo.provider, modelInfo.modelId, onlineConfig.apiKey)
+                return listOf(OnlineLlmCorrector(modelInfo.provider, modelInfo.modelId, onlineConfig.apiKey))
             }
         }
 
-        if (llmModelId == null || !BuildConfigFlags.liteRtLmAvailable()) return null
-        val modelFile = File(context.filesDir, "${AssetPaths.LLM_MODELS_DIR}/$llmModelId.litertlm")
-        if (!modelFile.exists()) return null
-        return LlmCorrectorFactory.createLiteRt(modelFile.absolutePath)
+        if (llmModelId != null && BuildConfigFlags.liteRtLmAvailable()) {
+            val modelFile = File(context.filesDir, "${AssetPaths.LLM_MODELS_DIR}/$llmModelId.litertlm")
+            if (modelFile.exists()) return listOf(LlmCorrectorFactory.createLiteRt(modelFile.absolutePath))
+        }
+        return emptyList()
+    }
+
+    private fun buildCorrector(entry: CorrectionChainEntry): LlmCorrector? = when (entry.kind) {
+        CorrectorKind.OFFLINE -> {
+            if (!BuildConfigFlags.liteRtLmAvailable()) {
+                null
+            } else {
+                val modelFile = File(context.filesDir, "${AssetPaths.LLM_MODELS_DIR}/${entry.modelId}.litertlm")
+                if (modelFile.exists()) LlmCorrectorFactory.createLiteRt(modelFile.absolutePath) else null
+            }
+        }
+        CorrectorKind.ONLINE -> {
+            val modelInfo = OnlineModelCatalog.byId(entry.modelId)
+            val apiKey = modelInfo?.let { onlineCorrectionRepository.apiKeyFor(it.provider) }
+            if (modelInfo != null && !apiKey.isNullOrBlank()) {
+                OnlineLlmCorrector(modelInfo.provider, modelInfo.modelId, apiKey)
+            } else {
+                null
+            }
+        }
     }
 }
