@@ -65,6 +65,16 @@ class NewJobWizardViewModel @Inject constructor(
     val availableEngineIds: StateFlow<List<String>> = _availableEngineIds
 
     init {
+        refreshAvailableEngines()
+    }
+
+    /**
+     * Re-checks which OCR engines have a downloaded model. Called both at creation and every
+     * time this screen resumes (e.g. returning from the Models screen after a download) --
+     * a one-shot check in init() alone would keep showing "not downloaded" for the lifetime of
+     * this ViewModel if the models finished downloading after the screen was first opened.
+     */
+    fun refreshAvailableEngines() {
         viewModelScope.launch {
             _availableEngineIds.value = engineRegistry.availableEngineIds(context)
         }
