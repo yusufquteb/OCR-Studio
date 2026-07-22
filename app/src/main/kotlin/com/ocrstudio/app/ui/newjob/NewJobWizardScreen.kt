@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -17,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +36,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun NewJobWizardScreen(
     onDone: (String) -> Unit,
+    onNavigateToModels: () -> Unit,
     viewModel: NewJobWizardViewModel = hiltViewModel()
 ) {
     val form by viewModel.form.collectAsState()
@@ -41,6 +44,7 @@ fun NewJobWizardScreen(
     val preview by viewModel.previewBitmap.collectAsState()
     val availableEngines by viewModel.availableEngineIds.collectAsState()
     val scope = rememberCoroutineScope()
+    val noEngineAvailable = availableEngines.isEmpty()
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.new_job_title)) }) }) { padding ->
         LazyColumn(modifier = Modifier.padding(padding).padding(16.dp)) {
@@ -94,14 +98,29 @@ fun NewJobWizardScreen(
 
             item {
                 Text(stringResource(R.string.new_job_ocr_engine), style = MaterialTheme.typography.labelMedium)
-                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                    availableEngines.forEach { engineId ->
-                        FilterChip(
-                            selected = form.ocrEngineId == engineId,
-                            onClick = { viewModel.update { it.copy(ocrEngineId = engineId) } },
-                            label = { Text(engineId) },
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
+                if (noEngineAvailable) {
+                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text(
+                                stringResource(R.string.new_job_no_engine_warning),
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            TextButton(onClick = onNavigateToModels) {
+                                Text(stringResource(R.string.new_job_go_to_models))
+                            }
+                        }
+                    }
+                } else {
+                    Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                        availableEngines.forEach { engineId ->
+                            FilterChip(
+                                selected = form.ocrEngineId == engineId,
+                                onClick = { viewModel.update { it.copy(ocrEngineId = engineId) } },
+                                label = { Text(engineId) },
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -157,6 +176,7 @@ fun NewJobWizardScreen(
                             if (jobId != null) onDone(jobId)
                         }
                     },
+                    enabled = !noEngineAvailable,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                 ) { Text(stringResource(R.string.new_job_start)) }
             }

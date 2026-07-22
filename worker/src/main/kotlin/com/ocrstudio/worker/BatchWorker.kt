@@ -89,6 +89,26 @@ class BatchWorker @AssistedInject constructor(
             language = "ara", psm = psm, dataDir = applicationContext.filesDir.absolutePath, dpi = job.dpi
         )
         val primaryEngine = engineRegistry.engineById(job.ocrEngineId)
+        if (!primaryEngine.isAvailable(applicationContext)) {
+            // The job's chosen engine has no downloaded model (e.g. the user started a job
+            // before downloading Tesseract/PaddleOCR from the Models screen). Fail loudly with
+            // a recorded error instead of calling init(), which would throw and leave the job
+            // stuck at RUNNING forever with no visible explanation.
+            errorRecordDao.insert(
+                ErrorRecord(
+                    id = UUID.randomUUID().toString(),
+                    jobId = jobId,
+                    pageNumber = startPage,
+                    stage = ErrorStage.OCR,
+                    message = "OCR engine '${job.ocrEngineId}' has no downloaded model -- " +
+                        "download it from the Models screen and restart this job.",
+                    timestampEpochMs = System.currentTimeMillis()
+                )
+            )
+            bookJobDao.updateStatus(jobId, JobStatus.FAILED, System.currentTimeMillis())
+            applicationContext.unregisterComponentCallbacks(memoryCallbacks)
+            return@withContext androidx.work.ListenableWorker.Result.failure()
+        }
         primaryEngine.init(applicationContext, ocrConfig)
 
         var errorCount = 0

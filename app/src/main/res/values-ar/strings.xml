@@ -28,6 +28,8 @@
     <string name="new_job_dpi_max">أقصى جودة (600 نقطة/بوصة)</string>
     <string name="new_job_batch_size">حجم الدفعة</string>
     <string name="new_job_ocr_engine">محرك المسح الضوئي</string>
+    <string name="new_job_no_engine_warning">لم يتم تنزيل أي محرك OCR بعد. نزّل Tesseract (أو PaddleOCR) من صفحة النماذج قبل بدء المهمة — وإلا ستفشل المهمة فورًا.</string>
+    <string name="new_job_go_to_models">الذهاب إلى النماذج</string>
     <string name="new_job_correction_mode">وضع التصحيح</string>
     <string name="new_job_correction_rules_only">القواعد فقط</string>
     <string name="new_job_correction_rules_and_llm">القواعد + الذكاء الاصطناعي</string>
