@@ -18,6 +18,13 @@ object Normalization {
         'ﻵ' to "لآ", 'ﻶ' to "لآ"
     )
 
+    /** Arabic harakat/tashkeel: fathatan..sukun plus the extra Quranic marks up to 065F. */
+    private val DIACRITIC_RANGE = 'ً'..'ٟ'
+
+    fun hasDiacritics(word: String): Boolean = word.any { it in DIACRITIC_RANGE }
+
+    fun stripDiacritics(word: String): String = word.filter { it !in DIACRITIC_RANGE }
+
     fun removeTatweel(word: String): String = word.filter { it != TATWEEL }
 
     fun collapseLigatures(word: String): String {

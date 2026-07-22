@@ -13,7 +13,11 @@ class RuleEngine(
     private val dictionary: Dictionary,
     private val normalizeDigits: Boolean = false
 ) {
-    private val arabicWordRegex = Regex("[\\u0621-\\u064A\\u0670-\\u06D3\\uFE70-\\uFEFF]+")
+    // Includes the harakat/tashkeel range (064B-0652) so a fully-vocalized word (fatha, damma,
+    // kasra, sukun, shadda) is matched as one token instead of being fragmented at every
+    // diacritic mark -- fragmenting it here would make dictionary lookups fail on partial
+    // letter-runs and could apply a substitution to a fragment instead of the whole word.
+    private val arabicWordRegex = Regex("[\\u0621-\\u065F\\u0670-\\u06D3\\uFE70-\\uFEFF]+")
 
     fun correctText(text: String): CorrectionResult {
         var totalWords = 0
@@ -37,6 +41,16 @@ class RuleEngine(
 
     /** Returns (finalWord, foundInDictionary). Only ever changes a word if the change is dictionary-validated. */
     fun correctWord(rawWord: String): Pair<String, Boolean> {
+        if (Normalization.hasDiacritics(rawWord)) {
+            // Fully-vocalized (tashkeel) input: never rewrite the base letters, since any rule-
+            // engine substitution here would leave the harakat marks misaligned with the new
+            // letters. Pass the word through exactly as OCR produced it; only check the
+            // dictionary (against the undiacritized form) to still contribute to the hit-rate
+            // score used for validation.
+            val found = dictionary.contains(Normalization.stripDiacritics(rawWord))
+            return rawWord to found
+        }
+
         val baseline = Normalization.baseline(rawWord)
 
         if (dictionary.contains(baseline)) {
