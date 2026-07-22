@@ -100,6 +100,7 @@
     <string name="ai_settings_use">Use</string>
     <string name="ai_settings_get_key_banner">Get your API key from %1$s</string>
     <string name="ai_settings_open">AI Settings</string>
+    <string name="models_no_offline_llm_for_device">No on-device correction model fits this device\'s available RAM. You can still add an online model below.</string>
     <string name="ai_settings_chain_title">Correction chain</string>
     <string name="ai_settings_chain_subtitle">Up to 4 models, tried in order. Offline models always run before online ones.</string>
     <string name="ai_settings_chain_empty">No models in the chain yet. Add models below.</string>

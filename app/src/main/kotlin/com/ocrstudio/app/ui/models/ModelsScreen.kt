@@ -67,6 +67,14 @@ fun ModelsScreen(onOpenAiSettings: () -> Unit, viewModel: ModelsViewModel = hilt
 
             item {
                 Text("Correction models", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
+                if (viewModel.availableLlmModels.isEmpty()) {
+                    Text(
+                        stringResource(R.string.models_no_offline_llm_for_device),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
 
             items(viewModel.availableLlmModels, key = { it.id }) { model ->
@@ -95,7 +103,7 @@ private fun OnlineCorrectionEntryCard(viewModel: ModelsViewModel, onOpenAiSettin
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(stringResource(R.string.settings_online_correction_subtitle), style = MaterialTheme.typography.bodySmall)
                 Text(
                     if (onlineCount == 1) {
