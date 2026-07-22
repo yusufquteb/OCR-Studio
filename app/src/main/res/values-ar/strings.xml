@@ -100,6 +100,7 @@
     <string name="ai_settings_use">استخدام</string>
     <string name="ai_settings_get_key_banner">احصل على مفتاح API من %1$s</string>
     <string name="ai_settings_open">إعدادات الذكاء الاصطناعي</string>
+    <string name="models_no_offline_llm_for_device">لا يوجد نموذج تصحيح محلي يناسب ذاكرة الوصول العشوائي (RAM) المتوفرة في هذا الجهاز. يمكنك إضافة نموذج متصل بالإنترنت أدناه.</string>
     <string name="ai_settings_chain_title">سلسلة التصحيح</string>
     <string name="ai_settings_chain_subtitle">حتى 4 نماذج، تُجرَّب بالترتيب. النماذج غير المتصلة تعمل دائماً قبل النماذج المتصلة بالإنترنت.</string>
     <string name="ai_settings_chain_empty">لا توجد نماذج في السلسلة بعد. أضف نماذج أدناه.</string>
