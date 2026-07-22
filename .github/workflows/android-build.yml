@@ -37,3 +37,25 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
+
+      - name: Send debug APK to Telegram
+        # Optional convenience step, not part of the app's correctness -- a failure here
+        # (missing/invalid secrets, Telegram API hiccup) must never fail the build itself.
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID repo secrets are not set -- skipping."
+            exit 0
+          fi
+          APK_PATH=$(find app/build/outputs/apk/debug -name '*.apk' | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "No debug APK found -- skipping."
+            exit 0
+          fi
+          curl -sS --fail -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="${TELEGRAM_CHAT_ID}" \
+            -F document=@"${APK_PATH}" \
+            -F caption="OCR Studio debug APK — ${GITHUB_REF_NAME} @ ${GITHUB_SHA:0:7}"
