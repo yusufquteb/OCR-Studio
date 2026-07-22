@@ -21,14 +21,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.ocrstudio.app.R
 import com.ocrstudio.core.common.DpiPreset
 import kotlinx.coroutines.launch
@@ -45,6 +49,17 @@ fun NewJobWizardScreen(
     val availableEngines by viewModel.availableEngineIds.collectAsState()
     val scope = rememberCoroutineScope()
     val noEngineAvailable = availableEngines.isEmpty()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshAvailableEngines()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.new_job_title)) }) }) { padding ->
         LazyColumn(modifier = Modifier.padding(padding).padding(16.dp)) {
