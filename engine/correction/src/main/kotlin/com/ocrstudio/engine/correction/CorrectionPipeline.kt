@@ -1,5 +1,6 @@
 package com.ocrstudio.engine.correction
 
+import com.ocrstudio.core.common.LlmResult
 import javax.inject.Inject
 
 data class PipelineResult(
