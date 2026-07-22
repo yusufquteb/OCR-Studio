@@ -59,6 +59,8 @@
 
     <!-- Models -->
     <string name="models_title">Models</string>
+    <string name="models_section_offline">Offline (on-device)</string>
+    <string name="models_section_online">Online (optional)</string>
     <string name="models_download">Download</string>
     <string name="models_pause">Pause</string>
     <string name="models_resume">Resume</string>

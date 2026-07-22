@@ -59,6 +59,8 @@
 
     <!-- Models -->
     <string name="models_title">النماذج</string>
+    <string name="models_section_offline">غير متصل (محلي على الجهاز)</string>
+    <string name="models_section_online">متصل بالإنترنت (اختياري)</string>
     <string name="models_download">تنزيل</string>
     <string name="models_pause">إيقاف مؤقت</string>
     <string name="models_resume">استئناف</string>

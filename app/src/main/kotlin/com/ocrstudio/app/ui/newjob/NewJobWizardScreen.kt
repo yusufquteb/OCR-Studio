@@ -1,12 +1,14 @@
 package com.ocrstudio.app.ui.newjob
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +56,7 @@ fun NewJobWizardScreen(
 
             item {
                 Text(stringResource(R.string.new_job_parser_profile), style = MaterialTheme.typography.labelMedium)
-                Row {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                     viewModel.availableProfiles.forEach { profileId ->
                         FilterChip(
                             selected = form.profileId == profileId,
@@ -68,7 +70,7 @@ fun NewJobWizardScreen(
 
             item {
                 Text(stringResource(R.string.new_job_dpi_preset), style = MaterialTheme.typography.labelMedium)
-                Row {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                     DpiPreset.entries.forEach { preset ->
                         FilterChip(
                             selected = form.dpiPreset == preset,
@@ -92,7 +94,7 @@ fun NewJobWizardScreen(
 
             item {
                 Text(stringResource(R.string.new_job_ocr_engine), style = MaterialTheme.typography.labelMedium)
-                Row {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                     availableEngines.forEach { engineId ->
                         FilterChip(
                             selected = form.ocrEngineId == engineId,
