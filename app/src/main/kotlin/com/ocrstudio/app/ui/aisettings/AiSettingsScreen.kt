@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Refresh
@@ -30,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -54,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
 import com.ocrstudio.app.ui.models.ModelsViewModel
+import com.ocrstudio.core.common.CorrectionChainEntry
+import com.ocrstudio.core.common.CorrectorKind
+import com.ocrstudio.core.common.LlmModelInfo
 import com.ocrstudio.core.common.OnlineModelInfo
 import com.ocrstudio.core.common.OnlineProvider
 
@@ -71,13 +74,18 @@ private fun providerAvatarLabel(provider: OnlineProvider): String = when (provid
     OnlineProvider.HUGGING_FACE -> "H"
 }
 
+/**
+ * Lets the user build the correction fallback chain (up to [com.ocrstudio.core.common.MAX_CORRECTION_CHAIN_SIZE]
+ * models total, offline models always executed before online ones): a summary of the current
+ * chain at the top, then one card per online provider where each curated model can be added to
+ * or removed from the chain and, once any of a provider's models is in the chain, that provider's
+ * API key can be entered.
+ */
 @Composable
 fun AiSettingsScreen(onBack: () -> Unit, viewModel: ModelsViewModel = hiltViewModel()) {
-    val onlineConfig by viewModel.onlineCorrectionConfig.collectAsState()
+    val chain by viewModel.correctionChain.collectAsState()
     val modelAvailability by viewModel.modelAvailability.collectAsState()
     val isRefreshingModels by viewModel.isRefreshingModels.collectAsState()
-
-    val activeProvider = viewModel.onlineModels.find { it.id == onlineConfig.modelId }?.provider
 
     Scaffold(
         topBar = {
@@ -100,26 +108,25 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: ModelsViewModel = hiltViewMo
         }
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding).padding(16.dp)) {
+            item {
+                ChainSummaryCard(
+                    chain = viewModel.executionOrder(chain),
+                    availableLlmModels = viewModel.availableLlmModels,
+                    onlineModels = viewModel.onlineModels,
+                    onRemove = viewModel::removeFromChain
+                )
+            }
+
             items(OnlineProvider.entries) { provider ->
                 ProviderCard(
                     provider = provider,
-                    isActive = onlineConfig.enabled && activeProvider == provider,
-                    activeModelId = onlineConfig.modelId,
+                    isChainFull = viewModel.isChainFull,
                     modelAvailability = modelAvailability,
                     isRefreshingModels = isRefreshingModels,
                     models = viewModel.onlineModels.filter { it.provider == provider },
+                    isInChain = { modelId -> viewModel.isInChain(CorrectorKind.ONLINE, modelId) },
                     apiKeyFor = viewModel::apiKeyFor,
-                    onToggle = { turnedOn ->
-                        if (turnedOn) {
-                            val defaultModel = viewModel.onlineModels.filter { it.provider == provider }
-                                .firstOrNull { it.id == onlineConfig.modelId } ?: viewModel.onlineModels
-                                .firstOrNull { it.provider == provider }
-                            if (defaultModel != null) viewModel.enableProvider(provider, defaultModel.id)
-                        } else {
-                            viewModel.disableOnlineCorrection()
-                        }
-                    },
-                    onSelectModel = { modelId -> viewModel.enableProvider(provider, modelId) },
+                    onToggleModel = { model -> viewModel.toggleOnlineInChain(model) },
                     onSaveApiKey = { key -> viewModel.setApiKeyFor(provider, key) },
                     onRefresh = { viewModel.refreshModels(provider, viewModel.apiKeyFor(provider)) }
                 )
@@ -129,21 +136,79 @@ fun AiSettingsScreen(onBack: () -> Unit, viewModel: ModelsViewModel = hiltViewMo
 }
 
 @Composable
+private fun ChainSummaryCard(
+    chain: List<CorrectionChainEntry>,
+    availableLlmModels: List<LlmModelInfo>,
+    onlineModels: List<OnlineModelInfo>,
+    onRemove: (CorrectionChainEntry) -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.ai_settings_chain_title), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.ai_settings_chain_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+            if (chain.isEmpty()) {
+                Text(
+                    stringResource(R.string.ai_settings_chain_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            } else {
+                Column(Modifier.padding(top = 8.dp)) {
+                    chain.forEachIndexed { index, entry ->
+                        val label = when (entry.kind) {
+                            CorrectorKind.OFFLINE -> availableLlmModels.find { it.id == entry.modelId }?.displayName
+                            CorrectorKind.ONLINE -> onlineModels.find { it.id == entry.modelId }?.displayName
+                        } ?: entry.modelId
+                        val kindLabel = stringResource(
+                            if (entry.kind == CorrectorKind.OFFLINE) R.string.models_section_offline
+                            else R.string.models_section_online
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "${index + 1}. $label",
+                                style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                kindLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            IconButton(onClick = { onRemove(entry) }) {
+                                Icon(Icons.Filled.Close, contentDescription = null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ProviderCard(
     provider: OnlineProvider,
-    isActive: Boolean,
-    activeModelId: String?,
+    isChainFull: Boolean,
     modelAvailability: Map<String, Boolean>,
     isRefreshingModels: Boolean,
     models: List<OnlineModelInfo>,
+    isInChain: (String) -> Boolean,
     apiKeyFor: (OnlineProvider) -> String,
-    onToggle: (Boolean) -> Unit,
-    onSelectModel: (String) -> Unit,
+    onToggleModel: (OnlineModelInfo) -> Unit,
     onSaveApiKey: (String) -> Unit,
     onRefresh: () -> Unit
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+    val anyModelInChain = models.any { isInChain(it.id) }
 
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Column(Modifier.padding(16.dp)) {
@@ -165,8 +230,8 @@ private fun ProviderCard(
                 Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
                     Text(provider.displayName, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        stringResource(if (isActive) R.string.ai_settings_enabled else R.string.ai_settings_disabled),
-                        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        stringResource(if (anyModelInChain) R.string.ai_settings_enabled else R.string.ai_settings_disabled),
+                        color = if (anyModelInChain) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
@@ -178,7 +243,6 @@ private fun ProviderCard(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                Switch(checked = isActive, onCheckedChange = onToggle)
             }
 
             Column(modifier = Modifier.padding(top = 8.dp)) {
@@ -188,7 +252,7 @@ private fun ProviderCard(
                         false -> " ✗"
                         null -> ""
                     }
-                    val selected = isActive && activeModelId == model.id
+                    val inChain = isInChain(model.id)
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -198,23 +262,26 @@ private fun ProviderCard(
                             Text(
                                 "${model.displayName}$mark",
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (inChain) FontWeight.Bold else FontWeight.Normal
                             )
                             Text(
                                 model.note,
                                 style = MaterialTheme.typography.bodySmall.copy(textDirection = TextDirection.Content)
                             )
                         }
-                        if (!selected) {
-                            TextButton(onClick = { onSelectModel(model.id) }) {
-                                Text(stringResource(R.string.ai_settings_use))
-                            }
+                        TextButton(onClick = { onToggleModel(model) }, enabled = inChain || !isChainFull) {
+                            Text(
+                                stringResource(
+                                    if (inChain) R.string.ai_settings_remove_from_chain
+                                    else R.string.ai_settings_add_to_chain
+                                )
+                            )
                         }
                     }
                 }
             }
 
-            if (isActive) {
+            if (anyModelInChain) {
                 var apiKeyField by remember(provider) { mutableStateOf(apiKeyFor(provider)) }
                 var showKey by remember(provider) { mutableStateOf(false) }
 

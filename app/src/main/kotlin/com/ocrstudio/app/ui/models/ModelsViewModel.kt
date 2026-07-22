@@ -3,12 +3,16 @@ package com.ocrstudio.app.ui.models
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ocrstudio.core.common.CorrectionChainEntry
+import com.ocrstudio.core.common.CorrectorKind
 import com.ocrstudio.core.common.LlmModelInfo
-import com.ocrstudio.core.common.OnlineCorrectionConfig
+import com.ocrstudio.core.common.MAX_CORRECTION_CHAIN_SIZE
 import com.ocrstudio.core.common.OnlineModelCatalog
+import com.ocrstudio.core.common.OnlineModelInfo
 import com.ocrstudio.core.common.OnlineProvider
 import com.ocrstudio.engine.correction.ProviderModelChecker
 import com.ocrstudio.worker.AssetDownloadManager
+import com.ocrstudio.worker.CorrectionChainRepository
 import com.ocrstudio.worker.DeviceCapabilities
 import com.ocrstudio.worker.DownloadState
 import com.ocrstudio.worker.OnlineCorrectionRepository
@@ -26,15 +30,43 @@ import javax.inject.Inject
 class ModelsViewModel @Inject constructor(
     private val assetDownloadManager: AssetDownloadManager,
     private val deviceCapabilities: DeviceCapabilities,
-    private val onlineCorrectionRepository: OnlineCorrectionRepository
+    private val onlineCorrectionRepository: OnlineCorrectionRepository,
+    private val correctionChainRepository: CorrectionChainRepository
 ) : ViewModel() {
 
     val availableLlmModels: List<LlmModelInfo> get() = deviceCapabilities.availableLlmModels()
 
-    val onlineCorrectionConfig: StateFlow<OnlineCorrectionConfig> = onlineCorrectionRepository.config
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OnlineCorrectionConfig())
-
     val onlineModels = OnlineModelCatalog.ALL
+
+    /** The user's correction fallback chain (insertion order; execution always runs offline
+     *  entries before online ones -- see [CorrectionChainRepository.executionOrder]). */
+    val correctionChain: StateFlow<List<CorrectionChainEntry>> = correctionChainRepository.chain
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun executionOrder(entries: List<CorrectionChainEntry>) = correctionChainRepository.executionOrder(entries)
+
+    val isChainFull: Boolean get() = correctionChain.value.size >= MAX_CORRECTION_CHAIN_SIZE
+
+    fun isInChain(kind: CorrectorKind, modelId: String): Boolean =
+        correctionChain.value.any { it.kind == kind && it.modelId == modelId }
+
+    fun toggleOfflineInChain(model: LlmModelInfo) = toggleChain(CorrectionChainEntry(CorrectorKind.OFFLINE, model.id))
+
+    fun toggleOnlineInChain(model: OnlineModelInfo) = toggleChain(CorrectionChainEntry(CorrectorKind.ONLINE, model.id))
+
+    fun removeFromChain(entry: CorrectionChainEntry) = viewModelScope.launch {
+        correctionChainRepository.removeEntry(entry)
+    }
+
+    private fun toggleChain(entry: CorrectionChainEntry) {
+        viewModelScope.launch {
+            if (correctionChain.value.any { it == entry }) {
+                correctionChainRepository.removeEntry(entry)
+            } else {
+                correctionChainRepository.addEntry(entry)
+            }
+        }
+    }
 
     /** modelId (catalog id) -> whether the provider's own API currently lists it as available. */
     private val _modelAvailability = MutableStateFlow<Map<String, Boolean>>(emptyMap())
@@ -42,20 +74,6 @@ class ModelsViewModel @Inject constructor(
 
     private val _isRefreshingModels = MutableStateFlow(false)
     val isRefreshingModels: StateFlow<Boolean> = _isRefreshingModels.asStateFlow()
-
-    fun setOnlineCorrectionEnabled(enabled: Boolean) = viewModelScope.launch { onlineCorrectionRepository.setEnabled(enabled) }
-    fun setOnlineModelId(modelId: String) = viewModelScope.launch { onlineCorrectionRepository.setModelId(modelId) }
-
-    /** Turns this provider's chosen model on as the one active corrector, turning any other
-     *  provider's activation off (only one provider is ever actually used at a time). */
-    fun enableProvider(provider: OnlineProvider, modelId: String) {
-        viewModelScope.launch {
-            onlineCorrectionRepository.setModelId(modelId)
-            onlineCorrectionRepository.setEnabled(true)
-        }
-    }
-
-    fun disableOnlineCorrection() = setOnlineCorrectionEnabled(false)
 
     fun apiKeyFor(provider: OnlineProvider): String = onlineCorrectionRepository.apiKeyFor(provider)
     fun setApiKeyFor(provider: OnlineProvider, apiKey: String) = onlineCorrectionRepository.setApiKeyFor(provider, apiKey)
