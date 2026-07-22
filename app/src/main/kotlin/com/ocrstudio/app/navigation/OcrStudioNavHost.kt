@@ -62,7 +62,8 @@ fun OcrStudioNavHost() {
                     onDone = { jobId ->
                         navController.popBackStack()
                         navController.navigate(Destination.JobProgress.createRoute(jobId))
-                    }
+                    },
+                    onNavigateToModels = { navController.navigate(Destination.Models.route) }
                 )
             }
             composable(Destination.JobProgress.route) { backStackEntry ->

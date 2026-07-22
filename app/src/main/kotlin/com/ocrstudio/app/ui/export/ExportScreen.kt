@@ -2,12 +2,14 @@ package com.ocrstudio.app.ui.export
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -62,7 +64,7 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
             }
 
             Text(stringResource(R.string.export_select_format), style = MaterialTheme.typography.labelMedium)
-            Row {
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 ExportFormat.entries.forEach { format ->
                     FilterChip(
                         selected = selectedFormat == format,

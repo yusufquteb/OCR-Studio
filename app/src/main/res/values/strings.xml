@@ -28,6 +28,8 @@
     <string name="new_job_dpi_max">Maximum (600 DPI)</string>
     <string name="new_job_batch_size">Batch size</string>
     <string name="new_job_ocr_engine">OCR engine</string>
+    <string name="new_job_no_engine_warning">No OCR engine is downloaded yet. Download Tesseract (or PaddleOCR) from the Models screen before starting a job -- otherwise it will fail immediately.</string>
+    <string name="new_job_go_to_models">Go to Models</string>
     <string name="new_job_correction_mode">Correction mode</string>
     <string name="new_job_correction_rules_only">Rules only</string>
     <string name="new_job_correction_rules_and_llm">Rules + LLM</string>
@@ -59,6 +61,8 @@
 
     <!-- Models -->
     <string name="models_title">Models</string>
+    <string name="models_section_offline">Offline (on-device)</string>
+    <string name="models_section_online">Online (optional)</string>
     <string name="models_download">Download</string>
     <string name="models_pause">Pause</string>
     <string name="models_resume">Resume</string>
