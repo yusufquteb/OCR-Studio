@@ -44,6 +44,7 @@ fun OcrStudioTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = OcrStudioTypography,
+        shapes = OcrStudioShapes,
         content = content
     )
 }

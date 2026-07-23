@@ -1,5 +1,12 @@
 package com.ocrstudio.app.ui.newjob
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -81,12 +88,23 @@ fun NewJobWizardScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                when (currentStep) {
-                    0 -> fileStep(pdfName, pageCount, form, viewModel)
-                    1 -> optionsStep(form, viewModel)
-                    2 -> engineStep(form, availableEngines, noEngineAvailable, onNavigateToModels, viewModel)
-                    3 -> reviewStep(form, preview, viewModel)
+            AnimatedContent(
+                targetState = currentStep,
+                modifier = Modifier.weight(1f),
+                transitionSpec = {
+                    val direction = if (targetState > initialState) 1 else -1
+                    (slideInHorizontally(tween(250)) { width -> direction * width } + fadeIn(tween(250))) togetherWith
+                        (slideOutHorizontally(tween(250)) { width -> -direction * width } + fadeOut(tween(250)))
+                },
+                label = "wizard_step"
+            ) { step ->
+                LazyColumn {
+                    when (step) {
+                        0 -> fileStep(pdfName, pageCount, form, viewModel)
+                        1 -> optionsStep(form, viewModel)
+                        2 -> engineStep(form, availableEngines, noEngineAvailable, onNavigateToModels, viewModel)
+                        3 -> reviewStep(form, preview, viewModel)
+                    }
                 }
             }
 
