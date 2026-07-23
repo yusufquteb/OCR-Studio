@@ -56,6 +56,21 @@ class CorrectionChainRepository @Inject constructor(
         }
     }
 
+    /**
+     * Drops OFFLINE entries that can never run in this build (LiteRT-LM not compiled in --
+     * see [BuildConfigFlags.liteRtLmAvailable]), so a chain configured before that was known
+     * doesn't keep silently promising a correction pass it will never perform. No-op once the
+     * chain no longer has any such entries.
+     */
+    suspend fun pruneUnavailableOfflineEntries() {
+        if (BuildConfigFlags.liteRtLmAvailable()) return
+        context.correctionChainDataStore.edit { prefs ->
+            val current = decode(prefs[Keys.ENTRIES])
+            val pruned = current.filterNot { it.kind == CorrectorKind.OFFLINE }
+            if (pruned.size != current.size) prefs[Keys.ENTRIES] = encode(pruned)
+        }
+    }
+
     /** OFFLINE entries first (in the order added), then ONLINE entries (in the order added). */
     fun executionOrder(entries: List<CorrectionChainEntry>): List<CorrectionChainEntry> =
         entries.filter { it.kind == CorrectorKind.OFFLINE } + entries.filter { it.kind == CorrectorKind.ONLINE }

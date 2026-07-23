@@ -92,7 +92,8 @@ class PageProcessor @Inject constructor(
                 winningEngineId = recognition.winningEngineId,
                 imagePath = null,
                 processedAtEpochMs = System.currentTimeMillis(),
-                rawWordsJson = OcrWordsSerializer.encode(recognition.page.words)
+                rawWordsJson = OcrWordsSerializer.encode(recognition.page.words),
+                aiCorrectionApplied = correction.llmApplied
             )
 
             val words = correction.correctedText.split(Regex("\\s+")).filter { it.isNotBlank() }

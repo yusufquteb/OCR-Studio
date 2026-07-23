@@ -18,21 +18,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
 import com.ocrstudio.core.common.OcrEngineIds
 import com.ocrstudio.core.database.entity.PageRecord
+import com.ocrstudio.core.ui.components.ChipTone
 import com.ocrstudio.core.ui.components.ConfidenceBadge
 import com.ocrstudio.core.ui.components.EmptyState
+import com.ocrstudio.core.ui.components.StatusChip
 import com.ocrstudio.core.ui.components.WordDiffText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -87,18 +92,35 @@ private fun ReviewPageCard(
                 ConfidenceBadge(page.finalScore)
             }
 
+            // Whether an LLM corrector actually accepted a rewrite for this page, so a
+            // configured correction chain that silently never fires (e.g. every entry rejected,
+            // or an offline-only chain in a build without on-device support) is visible here
+            // instead of looking indistinguishable from working correction.
+            StatusChip(
+                label = stringResource(
+                    if (page.aiCorrectionApplied) R.string.review_ai_correction_applied
+                    else R.string.review_ai_correction_not_applied
+                ),
+                tone = if (page.aiCorrectionApplied) ChipTone.SUCCESS else ChipTone.NEUTRAL,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
             Text(stringResource(R.string.review_raw_text), style = MaterialTheme.typography.labelMedium)
             WordDiffText(rawText = page.rawText, correctedText = page.correctedText, modifier = Modifier.padding(bottom = 8.dp))
 
             Text(stringResource(R.string.review_corrected_text), style = MaterialTheme.typography.labelMedium)
-            OutlinedTextField(
-                value = editedText,
-                onValueChange = { editedText = it },
-                // Base direction from content, not the app's ambient (possibly LTR) layout
-                // direction -- otherwise Arabic OCR text can visually misorder in the field.
-                textStyle = androidx.compose.ui.text.TextStyle.Default.copy(textDirection = TextDirection.Content),
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Rtl LocalLayoutDirection (not just textDirection = Content) is needed here too --
+            // otherwise the field's default TextAlign.Start still resolves to left under the
+            // app's ambient LTR direction, so wrapped Arabic paragraphs and the cursor's resting
+            // position both stay on the wrong side.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    textStyle = androidx.compose.ui.text.TextStyle.Default.copy(textDirection = TextDirection.Content),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),

@@ -22,6 +22,10 @@ data class PageRecord(
     val winningEngineId: String,           // which OCR engine's result was kept
     val imagePath: String?,                // kept only if "keep images" setting on
     val processedAtEpochMs: Long,
+    // Whether an LLM corrector (offline or online) actually accepted a rewrite for at least one
+    // chunk of this page -- false means the corrected text is rule-engine output only, even if
+    // the job has a correction chain configured, so Review can show the user what really ran.
+    val aiCorrectionApplied: Boolean = false,
     // Raw (pre-correction) OCR words + pixel-space bounding boxes, JSON-encoded via
     // OcrWordsSerializer. Used to build the searchable PDF export's invisible text layer,
     // positioned over the original page render rather than the corrected text (which can

@@ -12,11 +12,13 @@ class ExportRegistry @Inject constructor(
     markdownExportPlugin: MarkdownExportPlugin,
     csvExportPlugin: CsvExportPlugin,
     xmlExportPlugin: XmlExportPlugin,
-    searchablePdfExportPlugin: SearchablePdfExportPlugin
+    searchablePdfExportPlugin: SearchablePdfExportPlugin,
+    wordExportPlugin: WordExportPlugin
 ) {
     private val plugins: Map<ExportFormat, ExportPlugin> = listOf(
         sqliteExportPlugin, jsonExportPlugin, txtExportPlugin,
-        markdownExportPlugin, csvExportPlugin, xmlExportPlugin, searchablePdfExportPlugin
+        markdownExportPlugin, csvExportPlugin, xmlExportPlugin, searchablePdfExportPlugin,
+        wordExportPlugin
     ).associateBy { it.format }
 
     fun pluginFor(format: ExportFormat): ExportPlugin =

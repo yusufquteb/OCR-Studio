@@ -13,10 +13,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
@@ -40,7 +44,14 @@ fun JobProgressScreen(
                 Text("Loading…")
                 return@Column
             }
-            Text(job.title, style = MaterialTheme.typography.titleLarge)
+            // This screen was missed by the earlier content-direction fix entirely -- job.title
+            // was still rendered with the app's ambient (LTR) text direction and alignment.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Text(
+                    job.title,
+                    style = MaterialTheme.typography.titleLarge.copy(textDirection = TextDirection.Content)
+                )
+            }
             Text("Page ${job.currentPage} / ${job.pageCount}")
             LinearProgressIndicator(
                 progress = { if (job.pageCount > 0) job.currentPage.toFloat() / job.pageCount else 0f },
