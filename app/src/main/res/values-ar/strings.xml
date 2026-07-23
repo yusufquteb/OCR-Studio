@@ -2,6 +2,12 @@
     <string name="app_name">استوديو المسح الضوئي</string>
     <string name="common_ok">حسناً</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_title">مرحباً بك في استوديو المسح الضوئي</string>
+    <string name="onboarding_subtitle">امسح ملفات PDF عربية، وتعرّف على نصها بمحرك OCR على الجهاز، وراجع النتائج وصدّرها — كل ذلك دون اتصال بالإنترنت افتراضياً.</string>
+    <string name="onboarding_get_started">ابدأ الآن</string>
+    <string name="onboarding_resume_job">جارٍ استئناف آخر مهمة…</string>
+
     <!-- Navigation -->
     <string name="nav_library">الرئيسية</string>
     <string name="nav_jobs">المهام</string>

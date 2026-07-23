@@ -10,11 +10,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -28,6 +32,8 @@ import com.ocrstudio.app.ui.jobs.JobsScreen
 import com.ocrstudio.app.ui.library.LibraryScreen
 import com.ocrstudio.app.ui.models.ModelsScreen
 import com.ocrstudio.app.ui.newjob.NewJobWizardScreen
+import com.ocrstudio.app.ui.onboarding.OnboardingScreen
+import com.ocrstudio.app.ui.onboarding.OnboardingViewModel
 import com.ocrstudio.app.ui.progress.JobProgressScreen
 import com.ocrstudio.app.ui.review.ReviewScreen
 import com.ocrstudio.app.ui.search.SearchScreen
@@ -43,9 +49,22 @@ private val bottomNavItems = listOf(
 @Composable
 fun OcrStudioNavHost(
     pendingJobId: String? = null,
-    onPendingJobIdConsumed: () -> Unit = {}
+    onPendingJobIdConsumed: () -> Unit = {},
+    onboardingViewModel: OnboardingViewModel = hiltViewModel(),
+    appSignalsViewModel: AppSignalsViewModel = hiltViewModel()
 ) {
+    val hasCompletedOnboarding by onboardingViewModel.hasCompletedOnboarding.collectAsState()
+    when (hasCompletedOnboarding) {
+        null -> return // still loading the DataStore value; render nothing for one frame
+        false -> {
+            OnboardingScreen(onFinish = {})
+            return
+        }
+        true -> Unit
+    }
+
     val navController = rememberNavController()
+    val recoveredJobIds by appSignalsViewModel.recoveredJobIds.collectAsState()
 
     // Deep-links a tap on the OCR-processing notification straight into that job's progress
     // screen, on top of whatever the user was already looking at.
@@ -57,7 +76,21 @@ fun OcrStudioNavHost(
     }
 
     Scaffold(
-        bottomBar = { OcrStudioBottomBar(navController) }
+        bottomBar = { OcrStudioBottomBar(navController) },
+        snackbarHost = {
+            val firstRecoveredJobId = recoveredJobIds.firstOrNull()
+            if (firstRecoveredJobId != null) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = {
+                        androidx.compose.material3.TextButton(onClick = {
+                            navController.navigate(Destination.JobProgress.createRoute(firstRecoveredJobId))
+                            appSignalsViewModel.clearRecoveredJobIds()
+                        }) { Text(stringResourceCompat(R.string.progress_title)) }
+                    }
+                ) { Text(stringResourceCompat(R.string.onboarding_resume_job)) }
+            }
+        }
     ) { padding ->
         NavHost(
             navController = navController,
