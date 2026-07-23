@@ -74,7 +74,7 @@ class BatchWorker @AssistedInject constructor(
             return@withContext androidx.work.ListenableWorker.Result.success()
         }
 
-        setForeground(createForegroundInfo(job.title, batchIndex, batchCount, startPage, 0, endPage - startPage + 1, 0))
+        setForeground(createForegroundInfo(jobId, job.title, batchIndex, batchCount, startPage, 0, endPage - startPage + 1, 0))
         bookJobDao.updateStatus(jobId, JobStatus.RUNNING, System.currentTimeMillis())
         applicationContext.registerComponentCallbacks(memoryCallbacks)
 
@@ -140,7 +140,8 @@ class BatchWorker @AssistedInject constructor(
                     preprocessConfig = preprocessConfig,
                     primaryEngine = primaryEngine,
                     parserProfile = parserProfile,
-                    llmModelId = job.llmModelId
+                    llmModelId = job.llmModelId,
+                    tashkeelMode = job.tashkeelMode
                 ).onFailure { throwable ->
                     errorCount++
                     errorRecordDao.insert(
@@ -166,7 +167,7 @@ class BatchWorker @AssistedInject constructor(
 
                 setForeground(
                     createForegroundInfo(
-                        job.title, batchIndex, batchCount, pageNumber, pagesDone,
+                        jobId, job.title, batchIndex, batchCount, pageNumber, pagesDone,
                         totalPagesInBatch, errorCount, pagesPerMinute, etaMinutes
                     )
                 )
@@ -196,6 +197,7 @@ class BatchWorker @AssistedInject constructor(
     }
 
     private fun createForegroundInfo(
+        jobId: String,
         title: String,
         batchIndex: Int,
         batchCount: Int,
@@ -212,7 +214,8 @@ class BatchWorker @AssistedInject constructor(
         val content = "Batch ${batchIndex + 1}/$batchCount · Page $currentPage · " +
             "${"%.1f".format(pagesPerMinute)} pages/min · ETA ${etaMinutes.roundToInt()}min · Errors: $errorCount"
         val notification = NotificationHelper.buildProgressNotification(
-            applicationContext, title, content, progressPercent
+            applicationContext, title, content, progressPercent,
+            contentIntent = NotificationHelper.jobPendingIntent(applicationContext, jobId)
         )
         return ForegroundInfo(
             WorkerConstants.NOTIFICATION_ID_BASE,

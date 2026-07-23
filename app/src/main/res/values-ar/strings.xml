@@ -1,17 +1,37 @@
 <resources>
     <string name="app_name">استوديو المسح الضوئي</string>
+    <string name="common_ok">حسناً</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">مرحباً بك في استوديو المسح الضوئي</string>
+    <string name="onboarding_subtitle">امسح ملفات PDF عربية، وتعرّف على نصها بمحرك OCR على الجهاز، وراجع النتائج وصدّرها — كل ذلك دون اتصال بالإنترنت افتراضياً.</string>
+    <string name="onboarding_get_started">ابدأ الآن</string>
+    <string name="onboarding_resume_job">جارٍ استئناف آخر مهمة…</string>
 
     <!-- Navigation -->
-    <string name="nav_library">المكتبة</string>
+    <string name="nav_library">الرئيسية</string>
+    <string name="nav_jobs">المهام</string>
     <string name="nav_search">بحث</string>
     <string name="nav_models">النماذج</string>
     <string name="nav_settings">الإعدادات</string>
 
     <!-- Library / Home -->
     <string name="library_title">كتبي</string>
-    <string name="library_empty_title">لا توجد كتب بعد</string>
-    <string name="library_empty_subtitle">اضغط على + لإضافة ملف PDF عربي وبدء المعالجة</string>
-    <string name="library_add_pdf">إضافة PDF</string>
+    <string name="library_empty_title">لا توجد كتب مكتملة بعد</string>
+    <string name="library_empty_subtitle">اضغط على مسح لإضافة ملف PDF عربي وبدء المعالجة</string>
+    <string name="library_add_pdf">مسح</string>
+
+    <!-- Jobs -->
+    <string name="jobs_title">المهام</string>
+    <string name="jobs_empty_title">لا توجد مهام نشطة</string>
+    <string name="jobs_empty_subtitle">ابدأ مسحاً جديداً من الرئيسية لمتابعة تقدمه هنا</string>
+
+    <!-- Batch add -->
+    <string name="library_batch_add">مسح دفعي</string>
+    <string name="library_batch_no_engine">لم يتم تنزيل أي محرك OCR بعد. نزّل واحداً من الإعدادات ← النماذج والذكاء الاصطناعي أولاً.</string>
+    <string name="library_batch_queued">تمت إضافة %1$d مهمة إلى قائمة الانتظار.</string>
+    <string name="library_batch_skipped_all">لا توجد مساحة تخزين كافية لإضافة: %1$s</string>
+    <string name="library_batch_partial">تمت إضافة %1$d مهمة. تم تخطي بسبب انخفاض المساحة: %2$s</string>
     <string name="job_status_queued">في الانتظار</string>
     <string name="job_status_running">قيد التنفيذ</string>
     <string name="job_status_paused">متوقف مؤقتاً</string>
@@ -30,12 +50,23 @@
     <string name="new_job_ocr_engine">محرك المسح الضوئي</string>
     <string name="new_job_no_engine_warning">لم يتم تنزيل أي محرك OCR بعد. نزّل Tesseract (أو PaddleOCR) من صفحة النماذج قبل بدء المهمة — وإلا ستفشل المهمة فورًا.</string>
     <string name="new_job_go_to_models">الذهاب إلى النماذج</string>
+    <string name="new_job_tashkeel_mode">معالجة التشكيل</string>
+    <string name="new_job_tashkeel_exact">حرفي (كما في الصورة)</string>
+    <string name="new_job_tashkeel_normal">عادي</string>
+    <string name="new_job_tashkeel_smart">ذكي (إكمال بالذكاء الاصطناعي)</string>
     <string name="new_job_correction_mode">وضع التصحيح</string>
     <string name="new_job_correction_rules_only">القواعد فقط</string>
     <string name="new_job_correction_rules_and_llm">القواعد + الذكاء الاصطناعي</string>
     <string name="new_job_keep_images">الاحتفاظ بصور الصفحات</string>
     <string name="new_job_preview_step">معاينة المعالجة المسبقة</string>
     <string name="new_job_start">بدء المهمة</string>
+    <string name="new_job_step_file">1. الملف</string>
+    <string name="new_job_step_options">2. الخيارات</string>
+    <string name="new_job_step_engine">3. المحرك</string>
+    <string name="new_job_step_review">4. مراجعة وبدء</string>
+    <string name="new_job_next">التالي</string>
+    <string name="new_job_back">رجوع</string>
+    <string name="new_job_large_pdf_warning">يحتوي هذا الملف على %1$d صفحة. قد تستغرق المعالجة حوالي %2$d دقيقة.</string>
 
     <!-- Job Progress -->
     <string name="progress_title">تقدم المهمة</string>
@@ -44,6 +75,8 @@
     <string name="progress_cancel">إلغاء</string>
     <string name="progress_pages_per_minute">%1$.1f صفحة/دقيقة</string>
     <string name="progress_eta">الوقت المتبقي %1$d دقيقة</string>
+    <string name="progress_remaining">الوقت المتبقي المقدر: %1$s</string>
+    <string name="progress_current_task">التعرف على النص (%1$s)</string>
     <string name="progress_errors">%1$d أخطاء</string>
 
     <!-- Review -->
@@ -58,6 +91,7 @@
     <string name="search_title">بحث</string>
     <string name="search_hint">البحث في جميع الكتب…</string>
     <string name="search_no_results">لا توجد نتائج</string>
+    <string name="search_recent_title">عمليات البحث الأخيرة</string>
 
     <!-- Models -->
     <string name="models_title">النماذج</string>
@@ -77,11 +111,19 @@
     <string name="export_title">تصدير</string>
     <string name="export_select_job">اختر المهمة</string>
     <string name="export_select_format">اختر الصيغة</string>
-    <string name="export_start">تصدير</string>
+    <string name="export_preview">معاينة</string>
+    <string name="export_preview_summary">سيتم تصدير %1$d صفحة بصيغة %2$s</string>
+    <string name="export_start">حفظ</string>
     <string name="export_history">سجل التصدير</string>
+    <string name="export_empty_title">لا توجد كتب لتصديرها بعد</string>
+    <string name="export_empty_subtitle">أنهِ مهمة مسح ضوئي لتصديرها بصيغة PDF أو DOCX أو TXT وغيرها</string>
 
     <!-- Settings -->
     <string name="settings_title">الإعدادات</string>
+    <string name="settings_models_ai_title">النماذج والذكاء الاصطناعي</string>
+    <string name="settings_models_ai_subtitle">إدارة محركات OCR ونماذج التصحيح المحلية والمتصلة بالإنترنت</string>
+    <string name="settings_export_title">تصدير</string>
+    <string name="settings_export_subtitle">تصدير كتاب إلى PDF أو DOCX أو TXT أو Markdown وغيرها</string>
     <string name="settings_default_batch_size">حجم الدفعة الافتراضي</string>
     <string name="settings_default_dpi">الدقة الافتراضية</string>
     <string name="settings_keep_images">الاحتفاظ بصور الصفحات افتراضياً</string>
@@ -104,6 +146,7 @@
     <string name="models_offline_correction_unavailable">تصحيح الذكاء الاصطناعي على الجهاز غير متاح في هذا الإصدار. أضف نموذجًا متصلاً بالإنترنت أدناه (بمفتاح API خاص بك) للحصول على تصحيح بمساعدة الذكاء الاصطناعي.</string>
     <string name="review_ai_correction_applied">تم تطبيق تصحيح الذكاء الاصطناعي</string>
     <string name="review_ai_correction_not_applied">تصحيح قائم على القواعد فقط</string>
+    <string name="review_tashkeel_ai_completed">⚠️ تم استكمال التشكيل بواسطة الذكاء الاصطناعي</string>
     <string name="ai_settings_chain_title">سلسلة التصحيح</string>
     <string name="ai_settings_chain_subtitle">حتى 4 نماذج، تُجرَّب بالترتيب. النماذج غير المتصلة تعمل دائماً قبل النماذج المتصلة بالإنترنت.</string>
     <string name="ai_settings_chain_empty">لا توجد نماذج في السلسلة بعد. أضف نماذج أدناه.</string>

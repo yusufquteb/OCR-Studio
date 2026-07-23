@@ -11,6 +11,7 @@ import com.ocrstudio.core.common.OcrEngineIds
 import com.ocrstudio.core.common.ParserProfileIds
 import com.ocrstudio.core.common.PreprocessConfig
 import com.ocrstudio.core.common.PreprocessConfigSerializer
+import com.ocrstudio.core.common.TashkeelMode
 import com.ocrstudio.core.database.dao.BookDao
 import com.ocrstudio.core.database.dao.BookJobDao
 import com.ocrstudio.core.database.entity.Book
@@ -27,6 +28,12 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+/** Pages above this show a "this may take a while" warning on the file-selection step, with a
+ *  rough estimate derived from [SECONDS_PER_PAGE_ESTIMATE]. */
+const val LARGE_PDF_PAGE_THRESHOLD = 150
+const val WIZARD_STEP_COUNT = 4
+private const val SECONDS_PER_PAGE_ESTIMATE = 3.3
+
 data class NewJobFormState(
     val title: String = "",
     val profileId: String = ParserProfileIds.GENERIC,
@@ -35,7 +42,8 @@ data class NewJobFormState(
     val ocrEngineId: String = OcrEngineIds.TESSERACT,
     val useLlmCorrection: Boolean = false,
     val llmModelId: String? = null,
-    val keepImages: Boolean = false
+    val keepImages: Boolean = false,
+    val tashkeelMode: TashkeelMode = TashkeelMode.NORMAL
 )
 
 @HiltViewModel
@@ -64,8 +72,37 @@ class NewJobWizardViewModel @Inject constructor(
     private val _availableEngineIds = MutableStateFlow(listOf(OcrEngineIds.TESSERACT))
     val availableEngineIds: StateFlow<List<String>> = _availableEngineIds
 
+    private val _currentStep = MutableStateFlow(0)
+    val currentStep: StateFlow<Int> = _currentStep
+
+    private val _pageCount = MutableStateFlow<Int?>(null)
+    val pageCount: StateFlow<Int?> = _pageCount
+
+    val estimatedSecondsForPageCount: (Int) -> Int = { pages -> (pages * SECONDS_PER_PAGE_ESTIMATE).toInt() }
+
     init {
         refreshAvailableEngines()
+        loadPageCount()
+    }
+
+    fun goToStep(step: Int) {
+        _currentStep.value = step.coerceIn(0, WIZARD_STEP_COUNT - 1)
+    }
+
+    fun nextStep() = goToStep(_currentStep.value + 1)
+
+    fun previousStep() = goToStep(_currentStep.value - 1)
+
+    private fun loadPageCount() {
+        viewModelScope.launch {
+            val uri = draftHolder.pdfUri.value ?: return@launch
+            val handle = pdfPageRenderer.open(uri).getOrNull() ?: return@launch
+            try {
+                _pageCount.value = handle.pageCount
+            } finally {
+                handle.close()
+            }
+        }
     }
 
     /**
@@ -135,6 +172,7 @@ class NewJobWizardViewModel @Inject constructor(
             ocrEngineId = state.ocrEngineId,
             llmModelId = if (state.useLlmCorrection) state.llmModelId else null,
             preprocessConfigJson = PreprocessConfigSerializer.encode(configFor(state.dpiPreset)),
+            tashkeelMode = state.tashkeelMode,
             status = JobStatus.QUEUED,
             createdAtEpochMs = now,
             updatedAtEpochMs = now

@@ -27,6 +27,15 @@ class SettingsRepository @Inject constructor(
         val DPI = intPreferencesKey("default_dpi")
         val KEEP_IMAGES = booleanPreferencesKey("keep_images_by_default")
         val BATTERY_CONSTRAINT = booleanPreferencesKey("battery_constraint_only")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+    }
+
+    val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[Keys.ONBOARDING_COMPLETED] ?: false
+    }
+
+    suspend fun setOnboardingCompleted(value: Boolean) {
+        context.dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = value }
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->

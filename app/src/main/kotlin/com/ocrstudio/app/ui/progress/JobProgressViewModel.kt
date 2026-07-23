@@ -21,7 +21,9 @@ import kotlinx.coroutines.launch
 data class JobProgressUiState(
     val job: BookJob? = null,
     val pagesProcessed: Int = 0,
-    val errorCount: Int = 0
+    val errorCount: Int = 0,
+    val estimatedSecondsRemaining: Int? = null,
+    val currentTaskLabel: String? = null
 )
 
 @HiltViewModel(assistedFactory = JobProgressViewModel.Factory::class)
@@ -42,8 +44,26 @@ class JobProgressViewModel @AssistedInject constructor(
         bookJobDao.observeById(jobId),
         errorRecordDao.observeByJob(jobId)
     ) { job, errors ->
-        JobProgressUiState(job = job, pagesProcessed = job?.currentPage ?: 0, errorCount = errors.size)
+        JobProgressUiState(
+            job = job,
+            pagesProcessed = job?.currentPage ?: 0,
+            errorCount = errors.size,
+            estimatedSecondsRemaining = job?.let { estimateSecondsRemaining(it) },
+            currentTaskLabel = job?.ocrEngineId
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), JobProgressUiState())
+
+    /** Rough ETA from the average pace observed so far this job -- no separate timing
+     *  instrumentation needed, just the checkpoint fields BatchWorker already persists. */
+    private fun estimateSecondsRemaining(job: BookJob): Int? {
+        if (job.status != JobStatus.RUNNING || job.currentPage <= 0) return null
+        val pagesRemaining = job.pageCount - job.currentPage
+        if (pagesRemaining <= 0) return null
+        val elapsedMs = System.currentTimeMillis() - job.createdAtEpochMs
+        if (elapsedMs <= 0) return null
+        val msPerPage = elapsedMs.toDouble() / job.currentPage
+        return ((msPerPage * pagesRemaining) / 1000).toInt()
+    }
 
     fun pause() {
         viewModelScope.launch {

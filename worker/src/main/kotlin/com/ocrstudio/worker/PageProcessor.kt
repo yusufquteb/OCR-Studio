@@ -9,7 +9,10 @@ import com.ocrstudio.core.common.CorrectorKind
 import com.ocrstudio.core.common.OcrWordsSerializer
 import com.ocrstudio.core.common.OnlineModelCatalog
 import com.ocrstudio.core.common.PreprocessConfig
+import com.ocrstudio.core.common.TashkeelMode
 import com.ocrstudio.core.common.ValidationScorer
+import com.ocrstudio.core.database.dao.CorrectionMemoryDao
+import com.ocrstudio.core.database.entity.CorrectionMemoryEntry
 import com.ocrstudio.core.database.entity.PageRecord
 import com.ocrstudio.core.database.entity.ReferenceEntry
 import com.ocrstudio.core.database.entity.RootEntry
@@ -18,7 +21,9 @@ import com.ocrstudio.core.database.repository.PageRepository
 import com.ocrstudio.engine.correction.CorrectionPipeline
 import com.ocrstudio.engine.correction.LlmCorrector
 import com.ocrstudio.engine.correction.LlmCorrectorFactory
+import com.ocrstudio.engine.correction.Normalization
 import com.ocrstudio.engine.correction.OnlineLlmCorrector
+import com.ocrstudio.engine.correction.PipelineResult
 import com.ocrstudio.engine.image.ImagePreprocessor
 import com.ocrstudio.engine.ocr.EngineRegistry
 import com.ocrstudio.engine.ocr.OcrEngine
@@ -42,6 +47,7 @@ class PageProcessor @Inject constructor(
     private val pageRepository: PageRepository,
     private val onlineCorrectionRepository: OnlineCorrectionRepository,
     private val correctionChainRepository: CorrectionChainRepository,
+    private val correctionMemoryDao: CorrectionMemoryDao,
     @AppContext private val context: Context
 ) {
     suspend fun processPage(
@@ -53,9 +59,12 @@ class PageProcessor @Inject constructor(
         preprocessConfig: PreprocessConfig,
         primaryEngine: OcrEngine,
         parserProfile: ParserProfile,
-        llmModelId: String?
+        llmModelId: String?,
+        tashkeelMode: TashkeelMode = TashkeelMode.NORMAL
     ): Result<PageRecord> = runCatching {
-        val llmCorrectors = openLlmCorrectors(llmModelId)
+        // EXACT preserves whatever diacritics the OCR engine recognized -- no corrector is
+        // allowed to rewrite the text, only the always-on rule engine's non-destructive cleanup.
+        val llmCorrectors = if (tashkeelMode == TashkeelMode.EXACT) emptyList() else openLlmCorrectors(llmModelId)
         try {
             val renderResult = pdfPageRenderer.renderPage(handle, pageNumber - 1, dpi)
             val rawBitmap = renderResult.getOrNull() ?: error("Failed to render page $pageNumber")
@@ -72,6 +81,17 @@ class PageProcessor @Inject constructor(
 
             val correction = correctionPipeline.run(parsedPage.text, llmCorrectors)
 
+            // Auto-applies any word-level fix the user already made once elsewhere in this book
+            // (Review screen's "correction memory"), so it doesn't have to be corrected again by
+            // hand on every later page it appears on.
+            val memoryEntries = correctionMemoryDao.getByBook(bookId)
+            val finalCorrectedText = applyCorrectionMemory(correction.correctedText, memoryEntries)
+
+            val tashkeelAiCompleted = tashkeelMode == TashkeelMode.SMART &&
+                correction.llmApplied &&
+                !Normalization.hasDiacritics(recognition.page.text) &&
+                Normalization.hasDiacritics(finalCorrectedText)
+
             val validation = ValidationScorer.score(
                 ocrConfidence = recognition.page.meanConfidence,
                 dictionaryHitRate = correction.dictionaryHitRate,
@@ -83,7 +103,7 @@ class PageProcessor @Inject constructor(
                 jobId = jobId,
                 pageNumber = pageNumber,
                 rawText = recognition.page.text,
-                correctedText = correction.correctedText,
+                correctedText = finalCorrectedText,
                 ocrConfidence = recognition.page.meanConfidence,
                 dictionaryHitRate = correction.dictionaryHitRate,
                 parserConfidence = parsedPage.parserConfidence,
@@ -93,10 +113,11 @@ class PageProcessor @Inject constructor(
                 imagePath = null,
                 processedAtEpochMs = System.currentTimeMillis(),
                 rawWordsJson = OcrWordsSerializer.encode(recognition.page.words),
-                aiCorrectionApplied = correction.llmApplied
+                aiCorrectionApplied = correction.llmApplied,
+                tashkeelAiCompleted = tashkeelAiCompleted
             )
 
-            val words = correction.correctedText.split(Regex("\\s+")).filter { it.isNotBlank() }
+            val words = finalCorrectedText.split(Regex("\\s+")).filter { it.isNotBlank() }
                 .mapIndexed { index, word ->
                     WordRecord(
                         id = UUID.randomUUID().toString(),
@@ -135,6 +156,28 @@ class PageProcessor @Inject constructor(
             pageRecord
         } finally {
             llmCorrectors.forEach { it.close() }
+        }
+    }
+
+    /** Replaces whole-token matches of a remembered OCR error with its remembered correction,
+     *  preserving all whitespace/newlines exactly (splits on whitespace boundaries without
+     *  discarding them, rather than re-joining with a single space). */
+    private fun applyCorrectionMemory(text: String, entries: List<CorrectionMemoryEntry>): String {
+        if (entries.isEmpty()) return text
+        val replacements = entries.associate { it.original to it.corrected }
+        val tokens = text.split(Regex("(?<=\\s)|(?=\\s)"))
+        return tokens.joinToString("") { token -> replacements[token] ?: token }
+    }
+
+    /** Re-runs only the correction step for already-recognized text against a single chosen
+     *  chain entry -- used by Review's per-page "switch AI provider" action, which shouldn't
+     *  have to re-run OCR just to try a different corrector on the same raw text. */
+    suspend fun recorrectWithEntry(rawText: String, entry: CorrectionChainEntry): PipelineResult {
+        val corrector = buildCorrector(entry)
+        try {
+            return correctionPipeline.run(rawText, listOfNotNull(corrector))
+        } finally {
+            corrector?.close()
         }
     }
 

@@ -57,6 +57,12 @@ fun JobProgressScreen(
                 progress = { if (job.pageCount > 0) job.currentPage.toFloat() / job.pageCount else 0f },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
             )
+            state.currentTaskLabel?.let { label ->
+                Text(stringResource(R.string.progress_current_task, label))
+            }
+            state.estimatedSecondsRemaining?.let { seconds ->
+                Text(stringResource(R.string.progress_remaining, formatDuration(seconds)))
+            }
             Text(stringResource(R.string.progress_errors, state.errorCount))
 
             Row(
@@ -74,4 +80,10 @@ fun JobProgressScreen(
             }
         }
     }
+}
+
+private fun formatDuration(totalSeconds: Int): String {
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
 }
