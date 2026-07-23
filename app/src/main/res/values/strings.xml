@@ -92,7 +92,9 @@
     <string name="export_title">Export</string>
     <string name="export_select_job">Select job</string>
     <string name="export_select_format">Select format</string>
-    <string name="export_start">Export</string>
+    <string name="export_preview">Preview</string>
+    <string name="export_preview_summary">%1$d pages will be exported as %2$s</string>
+    <string name="export_start">Save</string>
     <string name="export_history">Export history</string>
 
     <!-- Settings -->

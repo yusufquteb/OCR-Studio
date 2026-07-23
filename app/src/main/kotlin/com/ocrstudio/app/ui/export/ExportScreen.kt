@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,14 +33,17 @@ import com.ocrstudio.app.R
 import com.ocrstudio.core.common.ExportFormat
 import com.ocrstudio.core.database.entity.BookJob
 import com.ocrstudio.core.database.entity.ExportRecord
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
     val jobs by viewModel.jobs.collectAsState()
     val history by viewModel.history.collectAsState()
+    val scope = rememberCoroutineScope()
 
     var selectedJob by remember { mutableStateOf<BookJob?>(null) }
     var selectedFormat by remember { mutableStateOf(ExportFormat.JSON) }
+    var preview by remember { mutableStateOf<ExportPreview?>(null) }
 
     val createDocumentLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("*/*")
@@ -57,7 +61,7 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
                 items(jobs, key = { it.id }) { job ->
                     FilterChip(
                         selected = selectedJob?.id == job.id,
-                        onClick = { selectedJob = job },
+                        onClick = { selectedJob = job; preview = null },
                         label = {
                             Text(
                                 job.title,
@@ -74,7 +78,7 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
                 ExportFormat.entries.forEach { format ->
                     FilterChip(
                         selected = selectedFormat == format,
-                        onClick = { selectedFormat = format },
+                        onClick = { selectedFormat = format; preview = null },
                         label = { Text(format.name) },
                         modifier = Modifier.padding(end = 4.dp)
                     )
@@ -84,10 +88,37 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
             Button(
                 onClick = {
                     val job = selectedJob ?: return@Button
-                    createDocumentLauncher.launch("${job.title}.${selectedFormat.extension}")
+                    scope.launch { preview = viewModel.generatePreview(job.id, selectedFormat) }
                 },
                 enabled = selectedJob != null,
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            ) { Text(stringResource(R.string.export_preview)) }
+
+            preview?.let { p ->
+                Card(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(
+                            stringResource(R.string.export_preview_summary, p.pageCount, selectedFormat.name),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        p.previewText?.let { text ->
+                            Text(
+                                text,
+                                style = MaterialTheme.typography.bodySmall.copy(textDirection = TextDirection.Content),
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = {
+                    val job = selectedJob ?: return@Button
+                    createDocumentLauncher.launch("${job.title}.${selectedFormat.extension}")
+                },
+                enabled = selectedJob != null,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             ) { Text(stringResource(R.string.export_start)) }
 
             Text(stringResource(R.string.export_history), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 24.dp))

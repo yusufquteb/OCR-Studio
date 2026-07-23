@@ -92,7 +92,9 @@
     <string name="export_title">تصدير</string>
     <string name="export_select_job">اختر المهمة</string>
     <string name="export_select_format">اختر الصيغة</string>
-    <string name="export_start">تصدير</string>
+    <string name="export_preview">معاينة</string>
+    <string name="export_preview_summary">سيتم تصدير %1$d صفحة بصيغة %2$s</string>
+    <string name="export_start">حفظ</string>
     <string name="export_history">سجل التصدير</string>
 
     <!-- Settings -->
