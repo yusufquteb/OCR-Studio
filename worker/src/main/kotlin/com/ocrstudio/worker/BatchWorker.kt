@@ -140,7 +140,8 @@ class BatchWorker @AssistedInject constructor(
                     preprocessConfig = preprocessConfig,
                     primaryEngine = primaryEngine,
                     parserProfile = parserProfile,
-                    llmModelId = job.llmModelId
+                    llmModelId = job.llmModelId,
+                    tashkeelMode = job.tashkeelMode
                 ).onFailure { throwable ->
                     errorCount++
                     errorRecordDao.insert(

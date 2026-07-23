@@ -11,6 +11,7 @@ import com.ocrstudio.core.common.OcrEngineIds
 import com.ocrstudio.core.common.ParserProfileIds
 import com.ocrstudio.core.common.PreprocessConfig
 import com.ocrstudio.core.common.PreprocessConfigSerializer
+import com.ocrstudio.core.common.TashkeelMode
 import com.ocrstudio.core.database.dao.BookDao
 import com.ocrstudio.core.database.dao.BookJobDao
 import com.ocrstudio.core.database.entity.Book
@@ -41,7 +42,8 @@ data class NewJobFormState(
     val ocrEngineId: String = OcrEngineIds.TESSERACT,
     val useLlmCorrection: Boolean = false,
     val llmModelId: String? = null,
-    val keepImages: Boolean = false
+    val keepImages: Boolean = false,
+    val tashkeelMode: TashkeelMode = TashkeelMode.NORMAL
 )
 
 @HiltViewModel
@@ -170,6 +172,7 @@ class NewJobWizardViewModel @Inject constructor(
             ocrEngineId = state.ocrEngineId,
             llmModelId = if (state.useLlmCorrection) state.llmModelId else null,
             preprocessConfigJson = PreprocessConfigSerializer.encode(configFor(state.dpiPreset)),
+            tashkeelMode = state.tashkeelMode,
             status = JobStatus.QUEUED,
             createdAtEpochMs = now,
             updatedAtEpochMs = now

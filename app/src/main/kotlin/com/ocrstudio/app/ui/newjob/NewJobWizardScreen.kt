@@ -253,6 +253,20 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reviewStep(
     viewModel: NewJobWizardViewModel
 ) {
     item {
+        Text(stringResource(R.string.new_job_tashkeel_mode), style = MaterialTheme.typography.labelMedium)
+        Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+            com.ocrstudio.core.common.TashkeelMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = form.tashkeelMode == mode,
+                    onClick = { viewModel.update { it.copy(tashkeelMode = mode) } },
+                    label = { Text(tashkeelModeLabel(mode)) },
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+            }
+        }
+    }
+
+    item {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -301,4 +315,11 @@ private fun dpiPresetLabel(preset: DpiPreset): String = when (preset) {
     DpiPreset.STANDARD -> stringResource(R.string.new_job_dpi_standard)
     DpiPreset.OLD_BOOK -> stringResource(R.string.new_job_dpi_old_book)
     DpiPreset.MAX -> stringResource(R.string.new_job_dpi_max)
+}
+
+@Composable
+private fun tashkeelModeLabel(mode: com.ocrstudio.core.common.TashkeelMode): String = when (mode) {
+    com.ocrstudio.core.common.TashkeelMode.EXACT -> stringResource(R.string.new_job_tashkeel_exact)
+    com.ocrstudio.core.common.TashkeelMode.NORMAL -> stringResource(R.string.new_job_tashkeel_normal)
+    com.ocrstudio.core.common.TashkeelMode.SMART -> stringResource(R.string.new_job_tashkeel_smart)
 }

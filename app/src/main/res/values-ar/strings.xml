@@ -50,6 +50,10 @@
     <string name="new_job_ocr_engine">محرك المسح الضوئي</string>
     <string name="new_job_no_engine_warning">لم يتم تنزيل أي محرك OCR بعد. نزّل Tesseract (أو PaddleOCR) من صفحة النماذج قبل بدء المهمة — وإلا ستفشل المهمة فورًا.</string>
     <string name="new_job_go_to_models">الذهاب إلى النماذج</string>
+    <string name="new_job_tashkeel_mode">معالجة التشكيل</string>
+    <string name="new_job_tashkeel_exact">حرفي (كما في الصورة)</string>
+    <string name="new_job_tashkeel_normal">عادي</string>
+    <string name="new_job_tashkeel_smart">ذكي (إكمال بالذكاء الاصطناعي)</string>
     <string name="new_job_correction_mode">وضع التصحيح</string>
     <string name="new_job_correction_rules_only">القواعد فقط</string>
     <string name="new_job_correction_rules_and_llm">القواعد + الذكاء الاصطناعي</string>
@@ -142,6 +146,7 @@
     <string name="models_offline_correction_unavailable">تصحيح الذكاء الاصطناعي على الجهاز غير متاح في هذا الإصدار. أضف نموذجًا متصلاً بالإنترنت أدناه (بمفتاح API خاص بك) للحصول على تصحيح بمساعدة الذكاء الاصطناعي.</string>
     <string name="review_ai_correction_applied">تم تطبيق تصحيح الذكاء الاصطناعي</string>
     <string name="review_ai_correction_not_applied">تصحيح قائم على القواعد فقط</string>
+    <string name="review_tashkeel_ai_completed">⚠️ تم استكمال التشكيل بواسطة الذكاء الاصطناعي</string>
     <string name="ai_settings_chain_title">سلسلة التصحيح</string>
     <string name="ai_settings_chain_subtitle">حتى 4 نماذج، تُجرَّب بالترتيب. النماذج غير المتصلة تعمل دائماً قبل النماذج المتصلة بالإنترنت.</string>
     <string name="ai_settings_chain_empty">لا توجد نماذج في السلسلة بعد. أضف نماذج أدناه.</string>

@@ -3,6 +3,7 @@ package com.ocrstudio.core.database
 import androidx.room.TypeConverter
 import com.ocrstudio.core.common.ExportFormat
 import com.ocrstudio.core.common.JobStatus
+import com.ocrstudio.core.common.TashkeelMode
 import com.ocrstudio.core.database.entity.ErrorStage
 
 class Converters {
@@ -11,6 +12,12 @@ class Converters {
 
     @TypeConverter
     fun toJobStatus(value: String): JobStatus = JobStatus.valueOf(value)
+
+    @TypeConverter
+    fun fromTashkeelMode(value: TashkeelMode): String = value.name
+
+    @TypeConverter
+    fun toTashkeelMode(value: String): TashkeelMode = TashkeelMode.valueOf(value)
 
     @TypeConverter
     fun fromErrorStage(value: ErrorStage): String = value.name

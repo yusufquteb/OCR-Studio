@@ -30,5 +30,8 @@ data class PageRecord(
     // OcrWordsSerializer. Used to build the searchable PDF export's invisible text layer,
     // positioned over the original page render rather than the corrected text (which can
     // differ in word count/spelling and would no longer line up with real boxes).
-    val rawWordsJson: String? = null
+    val rawWordsJson: String? = null,
+    // Set only under TashkeelMode.SMART, when a corrector ended up adding diacritics the raw
+    // OCR text didn't have -- Review shows a "completed by AI" indicator when true.
+    val tashkeelAiCompleted: Boolean = false
 )

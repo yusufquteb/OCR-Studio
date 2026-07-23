@@ -50,6 +50,10 @@
     <string name="new_job_ocr_engine">OCR engine</string>
     <string name="new_job_no_engine_warning">No OCR engine is downloaded yet. Download Tesseract (or PaddleOCR) from the Models screen before starting a job -- otherwise it will fail immediately.</string>
     <string name="new_job_go_to_models">Go to Models</string>
+    <string name="new_job_tashkeel_mode">Diacritics handling</string>
+    <string name="new_job_tashkeel_exact">Exact (preserve as scanned)</string>
+    <string name="new_job_tashkeel_normal">Normal</string>
+    <string name="new_job_tashkeel_smart">Smart (AI-complete)</string>
     <string name="new_job_correction_mode">Correction mode</string>
     <string name="new_job_correction_rules_only">Rules only</string>
     <string name="new_job_correction_rules_and_llm">Rules + LLM</string>
@@ -142,6 +146,7 @@
     <string name="models_offline_correction_unavailable">On-device AI correction isn\'t available in this build. Add an online model below (with your own API key) to get AI-assisted correction.</string>
     <string name="review_ai_correction_applied">AI correction applied</string>
     <string name="review_ai_correction_not_applied">Rule-based correction only</string>
+    <string name="review_tashkeel_ai_completed">⚠️ Diacritics completed by AI</string>
     <string name="ai_settings_chain_title">Correction chain</string>
     <string name="ai_settings_chain_subtitle">Up to 4 models, tried in order. Offline models always run before online ones.</string>
     <string name="ai_settings_chain_empty">No models in the chain yet. Add models below.</string>

@@ -140,6 +140,14 @@ private fun ReviewPageCard(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
+            if (page.tashkeelAiCompleted) {
+                StatusChip(
+                    label = stringResource(R.string.review_tashkeel_ai_completed),
+                    tone = ChipTone.WARNING,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
             TextButton(onClick = { showImage = !showImage }, modifier = Modifier.padding(top = 4.dp)) {
                 Text(if (showImage) "Hide original page" else "Compare with original page")
             }
