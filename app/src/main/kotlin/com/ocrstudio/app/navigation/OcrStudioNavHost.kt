@@ -2,11 +2,10 @@ package com.ocrstudio.app.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.LibraryBooks
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ocrstudio.app.R
 import com.ocrstudio.app.ui.aisettings.AiSettingsScreen
 import com.ocrstudio.app.ui.export.ExportScreen
+import com.ocrstudio.app.ui.jobs.JobsScreen
 import com.ocrstudio.app.ui.library.LibraryScreen
 import com.ocrstudio.app.ui.models.ModelsScreen
 import com.ocrstudio.app.ui.newjob.NewJobWizardScreen
@@ -34,9 +34,8 @@ import com.ocrstudio.app.ui.settings.SettingsScreen
 
 private val bottomNavItems = listOf(
     BottomNavItem(Destination.Library, R.string.nav_library, Icons.Filled.LibraryBooks),
+    BottomNavItem(Destination.Jobs, R.string.nav_jobs, Icons.Filled.PlayCircle),
     BottomNavItem(Destination.Search, R.string.nav_search, Icons.Filled.Search),
-    BottomNavItem(Destination.Models, R.string.nav_models, Icons.Filled.CloudDownload),
-    BottomNavItem(Destination.Export, R.string.export_title, Icons.Filled.Upload),
     BottomNavItem(Destination.Settings, R.string.nav_settings, Icons.Filled.Settings)
 )
 
@@ -55,6 +54,11 @@ fun OcrStudioNavHost() {
             composable(Destination.Library.route) {
                 LibraryScreen(
                     onAddPdf = { navController.navigate(Destination.NewJobWizard.route) },
+                    onOpenJob = { jobId -> navController.navigate(Destination.JobProgress.createRoute(jobId)) }
+                )
+            }
+            composable(Destination.Jobs.route) {
+                JobsScreen(
                     onOpenJob = { jobId -> navController.navigate(Destination.JobProgress.createRoute(jobId)) }
                 )
             }
@@ -87,7 +91,12 @@ fun OcrStudioNavHost() {
                 AiSettingsScreen(onBack = { navController.popBackStack() })
             }
             composable(Destination.Export.route) { ExportScreen() }
-            composable(Destination.Settings.route) { SettingsScreen() }
+            composable(Destination.Settings.route) {
+                SettingsScreen(
+                    onOpenModels = { navController.navigate(Destination.Models.route) },
+                    onOpenExport = { navController.navigate(Destination.Export.route) }
+                )
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -59,7 +59,8 @@ fun LibraryScreen(
     onOpenJob: (String) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
-    val jobs by viewModel.jobs.collectAsState()
+    val allJobs by viewModel.jobs.collectAsState()
+    val jobs = allJobs.filter { it.status == JobStatus.DONE }
     val availableEngines by viewModel.availableEngineIds.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -83,9 +84,11 @@ fun LibraryScreen(
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.library_title)) }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { pickPdfLauncher.launch(arrayOf("application/pdf")) }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.library_add_pdf))
-            }
+            ExtendedFloatingActionButton(
+                onClick = { pickPdfLauncher.launch(arrayOf("application/pdf")) },
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.library_add_pdf)) }
+            )
         }
     ) { padding ->
         if (jobs.isEmpty()) {
@@ -113,7 +116,7 @@ fun LibraryScreen(
 }
 
 @Composable
-private fun JobListItem(
+internal fun JobListItem(
     job: BookJob,
     availableEngines: List<String>,
     onClick: () -> Unit,
@@ -187,7 +190,7 @@ private fun JobListItem(
 }
 
 @Composable
-private fun statusChip(status: JobStatus) {
+internal fun statusChip(status: JobStatus) {
     val (labelRes, tone) = when (status) {
         JobStatus.QUEUED -> R.string.job_status_queued to ChipTone.NEUTRAL
         JobStatus.RUNNING -> R.string.job_status_running to ChipTone.NEUTRAL

@@ -2,16 +2,22 @@
     <string name="app_name">OCR Studio</string>
 
     <!-- Navigation -->
-    <string name="nav_library">Library</string>
+    <string name="nav_library">Home</string>
+    <string name="nav_jobs">Jobs</string>
     <string name="nav_search">Search</string>
     <string name="nav_models">Models</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Library / Home -->
     <string name="library_title">My Books</string>
-    <string name="library_empty_title">No books yet</string>
-    <string name="library_empty_subtitle">Tap + to add an Arabic PDF and start OCR processing</string>
-    <string name="library_add_pdf">Add PDF</string>
+    <string name="library_empty_title">No finished books yet</string>
+    <string name="library_empty_subtitle">Tap Scan to add an Arabic PDF and start OCR processing</string>
+    <string name="library_add_pdf">Scan</string>
+
+    <!-- Jobs -->
+    <string name="jobs_title">Jobs</string>
+    <string name="jobs_empty_title">No active jobs</string>
+    <string name="jobs_empty_subtitle">Start a new scan from Home to see its progress here</string>
     <string name="job_status_queued">Queued</string>
     <string name="job_status_running">Running</string>
     <string name="job_status_paused">Paused</string>
@@ -82,6 +88,10 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
+    <string name="settings_models_ai_title">Models &amp; AI</string>
+    <string name="settings_models_ai_subtitle">Manage OCR engines, on-device and online correction models</string>
+    <string name="settings_export_title">Export</string>
+    <string name="settings_export_subtitle">Export a book to PDF, DOCX, TXT, Markdown and more</string>
     <string name="settings_default_batch_size">Default batch size</string>
     <string name="settings_default_dpi">Default DPI</string>
     <string name="settings_keep_images">Keep page images by default</string>

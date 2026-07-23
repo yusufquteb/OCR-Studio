@@ -2,16 +2,22 @@
     <string name="app_name">استوديو المسح الضوئي</string>
 
     <!-- Navigation -->
-    <string name="nav_library">المكتبة</string>
+    <string name="nav_library">الرئيسية</string>
+    <string name="nav_jobs">المهام</string>
     <string name="nav_search">بحث</string>
     <string name="nav_models">النماذج</string>
     <string name="nav_settings">الإعدادات</string>
 
     <!-- Library / Home -->
     <string name="library_title">كتبي</string>
-    <string name="library_empty_title">لا توجد كتب بعد</string>
-    <string name="library_empty_subtitle">اضغط على + لإضافة ملف PDF عربي وبدء المعالجة</string>
-    <string name="library_add_pdf">إضافة PDF</string>
+    <string name="library_empty_title">لا توجد كتب مكتملة بعد</string>
+    <string name="library_empty_subtitle">اضغط على مسح لإضافة ملف PDF عربي وبدء المعالجة</string>
+    <string name="library_add_pdf">مسح</string>
+
+    <!-- Jobs -->
+    <string name="jobs_title">المهام</string>
+    <string name="jobs_empty_title">لا توجد مهام نشطة</string>
+    <string name="jobs_empty_subtitle">ابدأ مسحاً جديداً من الرئيسية لمتابعة تقدمه هنا</string>
     <string name="job_status_queued">في الانتظار</string>
     <string name="job_status_running">قيد التنفيذ</string>
     <string name="job_status_paused">متوقف مؤقتاً</string>
@@ -82,6 +88,10 @@
 
     <!-- Settings -->
     <string name="settings_title">الإعدادات</string>
+    <string name="settings_models_ai_title">النماذج والذكاء الاصطناعي</string>
+    <string name="settings_models_ai_subtitle">إدارة محركات OCR ونماذج التصحيح المحلية والمتصلة بالإنترنت</string>
+    <string name="settings_export_title">تصدير</string>
+    <string name="settings_export_subtitle">تصدير كتاب إلى PDF أو DOCX أو TXT أو Markdown وغيرها</string>
     <string name="settings_default_batch_size">حجم الدفعة الافتراضي</string>
     <string name="settings_default_dpi">الدقة الافتراضية</string>
     <string name="settings_keep_images">الاحتفاظ بصور الصفحات افتراضياً</string>

@@ -2,6 +2,7 @@ package com.ocrstudio.app.navigation
 
 sealed class Destination(val route: String) {
     data object Library : Destination("library")
+    data object Jobs : Destination("jobs")
     data object NewJobWizard : Destination("new_job_wizard")
     data object Search : Destination("search")
     data object Models : Destination("models")
