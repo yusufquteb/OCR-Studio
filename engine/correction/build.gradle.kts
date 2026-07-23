@@ -48,11 +48,13 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     if (enableLiteRtLm) {
-        // NOTE: com.google.ai.edge.litert:litert-lm coordinates per the spec.
-        // If this artifact is unavailable in a given environment, set
-        // ocrstudio.enableLiteRtLm=false in gradle.properties; NoOpCorrector
-        // remains the guaranteed fallback in all cases.
-        implementation("com.google.ai.edge.litert:litert-lm:1.0.0")
+        // The previous coordinates here, com.google.ai.edge.litert:litert-lm:1.0.0, don't exist
+        // -- that group/artifact pair 404s on Google's Maven repo. The real package is published
+        // as com.google.ai.edge.litertlm:litertlm-android (note "litertlm", not "litert"), which
+        // already matches the com.google.ai.edge.litertlm.* imports LiteRtCorrector.kt uses. If
+        // this still fails to resolve in a given environment, set ocrstudio.enableLiteRtLm=false
+        // in gradle.properties; NoOpCorrector remains the guaranteed fallback in all cases.
+        implementation(libs.litertlm.android)
     }
 
     testImplementation(libs.junit)

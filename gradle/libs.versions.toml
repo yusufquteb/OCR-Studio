@@ -20,6 +20,7 @@ pdfium = "1.9.2"
 tesseract4android = "4.9.0"
 opencv = "4.9.0"
 onnxruntime = "1.19.2"
+litertlm = "0.13.1"
 junit = "4.13.2"
 androidxTestExt = "1.2.1"
 espresso = "3.6.1"
@@ -66,6 +67,7 @@ pdfium-android = { group = "com.github.mhiew", name = "pdfium-android", version.
 tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract4android", version.ref = "tesseract4android" }
 opencv = { group = "org.opencv", name = "opencv", version.ref = "opencv" }
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
+litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
