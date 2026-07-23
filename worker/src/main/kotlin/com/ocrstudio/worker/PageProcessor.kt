@@ -19,6 +19,7 @@ import com.ocrstudio.engine.correction.CorrectionPipeline
 import com.ocrstudio.engine.correction.LlmCorrector
 import com.ocrstudio.engine.correction.LlmCorrectorFactory
 import com.ocrstudio.engine.correction.OnlineLlmCorrector
+import com.ocrstudio.engine.correction.PipelineResult
 import com.ocrstudio.engine.image.ImagePreprocessor
 import com.ocrstudio.engine.ocr.EngineRegistry
 import com.ocrstudio.engine.ocr.OcrEngine
@@ -135,6 +136,18 @@ class PageProcessor @Inject constructor(
             pageRecord
         } finally {
             llmCorrectors.forEach { it.close() }
+        }
+    }
+
+    /** Re-runs only the correction step for already-recognized text against a single chosen
+     *  chain entry -- used by Review's per-page "switch AI provider" action, which shouldn't
+     *  have to re-run OCR just to try a different corrector on the same raw text. */
+    suspend fun recorrectWithEntry(rawText: String, entry: CorrectionChainEntry): PipelineResult {
+        val corrector = buildCorrector(entry)
+        try {
+            return correctionPipeline.run(rawText, listOfNotNull(corrector))
+        } finally {
+            corrector?.close()
         }
     }
 
