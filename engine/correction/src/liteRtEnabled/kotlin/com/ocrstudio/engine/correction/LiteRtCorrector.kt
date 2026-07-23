@@ -42,7 +42,9 @@ class LiteRtCorrector(private val modelPath: String) : LlmCorrector {
 
     override suspend fun correct(chunk: String): LlmResult = withContext(Dispatchers.Default) {
         val rawOutput = try {
-            ensureConversation().sendMessage(chunk).text
+            // Message has no .text property -- toString() is the documented way to get its
+            // plain-text content (it delegates to the underlying Contents.toString()).
+            ensureConversation().sendMessage(chunk).toString()
         } catch (t: Throwable) {
             return@withContext LlmResult(text = chunk, accepted = false, rejectionReason = "LLM call failed: ${t.message}")
         }
