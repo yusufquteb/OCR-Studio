@@ -42,6 +42,13 @@
     <string name="new_job_keep_images">الاحتفاظ بصور الصفحات</string>
     <string name="new_job_preview_step">معاينة المعالجة المسبقة</string>
     <string name="new_job_start">بدء المهمة</string>
+    <string name="new_job_step_file">1. الملف</string>
+    <string name="new_job_step_options">2. الخيارات</string>
+    <string name="new_job_step_engine">3. المحرك</string>
+    <string name="new_job_step_review">4. مراجعة وبدء</string>
+    <string name="new_job_next">التالي</string>
+    <string name="new_job_back">رجوع</string>
+    <string name="new_job_large_pdf_warning">يحتوي هذا الملف على %1$d صفحة. قد تستغرق المعالجة حوالي %2$d دقيقة.</string>
 
     <!-- Job Progress -->
     <string name="progress_title">تقدم المهمة</string>
@@ -50,6 +57,8 @@
     <string name="progress_cancel">إلغاء</string>
     <string name="progress_pages_per_minute">%1$.1f صفحة/دقيقة</string>
     <string name="progress_eta">الوقت المتبقي %1$d دقيقة</string>
+    <string name="progress_remaining">الوقت المتبقي المقدر: %1$s</string>
+    <string name="progress_current_task">التعرف على النص (%1$s)</string>
     <string name="progress_errors">%1$d أخطاء</string>
 
     <!-- Review -->
