@@ -87,7 +87,7 @@ internal object Recognition {
                 ctcDecode(result[0].value, vocab)
             }
         }
-        return RecognizedBox(box = box, text = text, confidence = confidence)
+        return RecognizedBox(box = box, text = reverseForRtl(text), confidence = confidence)
     }
 
     /**
@@ -126,6 +126,33 @@ internal object Recognition {
 
         val confidence = if (confCount > 0) confSum / confCount else 0f
         return sb.toString() to confidence
+    }
+
+    // Matches PaddleOCR's own CTCLabelDecode.pred_reverse post-process for Arabic-family
+    // languages: the rec model scans the crop left-to-right in image space, but Arabic text is
+    // drawn right-to-left, so raw CTC decode comes out character-mirrored. Runs of non-Arabic
+    // characters (Latin letters, digits, spaces, and a few punctuation marks) are kept intact as
+    // a single unit and the run order is reversed, rather than reversing every character --
+    // otherwise embedded numbers/Latin substrings and multi-codepoint sequences would themselves
+    // end up backwards.
+    private val nonArabicRun = Regex("[a-zA-Z0-9 :*./%+-]")
+
+    private fun reverseForRtl(text: String): String {
+        val runs = mutableListOf<String>()
+        val current = StringBuilder()
+        for (c in text) {
+            if (!nonArabicRun.matches(c.toString())) {
+                if (current.isNotEmpty()) {
+                    runs.add(current.toString())
+                    current.clear()
+                }
+                runs.add(c.toString())
+            } else {
+                current.append(c)
+            }
+        }
+        if (current.isNotEmpty()) runs.add(current.toString())
+        return runs.asReversed().joinToString("")
     }
 
     private fun distance(a: Pair<Float, Float>, b: Pair<Float, Float>): Float =
