@@ -106,6 +106,20 @@ object OnlineModelCatalog {
             modelId = "meta/llama-3.1-70b-instruct",
             displayName = "Llama 3.1 70B (عبر NVIDIA NIM)",
             note = "دعم عربي معقول، استضافة NVIDIA"
+        ),
+        OnlineModelInfo(
+            id = "gpt4o_openrouter",
+            provider = OnlineProvider.OPENROUTER,
+            modelId = "openai/gpt-4o",
+            displayName = "GPT-4o (عبر OpenRouter)",
+            note = "من أقوى النماذج متعددة اللغات، دعم عربي ممتاز للنصوص الصعبة"
+        ),
+        OnlineModelInfo(
+            id = "claude_sonnet_openrouter",
+            provider = OnlineProvider.OPENROUTER,
+            modelId = "anthropic/claude-3.5-sonnet",
+            displayName = "Claude 3.5 Sonnet (عبر OpenRouter)",
+            note = "دقة عالية في فهم النصوص العربية الكلاسيكية والفهارس/المعاجم"
         )
     )
 
