@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -57,7 +59,7 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.export_title)) }) }) { padding ->
         if (jobs.isEmpty()) {
             com.ocrstudio.core.ui.components.EmptyState(
-                icon = androidx.compose.material.icons.Icons.Filled.Upload,
+                icon = Icons.Filled.Upload,
                 title = stringResource(R.string.export_empty_title),
                 subtitle = stringResource(R.string.export_empty_subtitle),
                 modifier = Modifier.padding(padding)
