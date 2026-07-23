@@ -12,6 +12,7 @@ import com.ocrstudio.core.common.OnlineModelInfo
 import com.ocrstudio.core.common.OnlineProvider
 import com.ocrstudio.engine.correction.ProviderModelChecker
 import com.ocrstudio.worker.AssetDownloadManager
+import com.ocrstudio.worker.BuildConfigFlags
 import com.ocrstudio.worker.CorrectionChainRepository
 import com.ocrstudio.worker.DeviceCapabilities
 import com.ocrstudio.worker.DownloadState
@@ -37,6 +38,15 @@ class ModelsViewModel @Inject constructor(
     val availableLlmModels: List<LlmModelInfo> get() = deviceCapabilities.availableLlmModels()
 
     val onlineModels = OnlineModelCatalog.ALL
+
+    /** False when this build wasn't compiled with LiteRT-LM support: offline correction models
+     *  can be downloaded (harmless) but must never be offered as a chain entry that would
+     *  silently never run. See [CorrectionChainRepository.pruneUnavailableOfflineEntries]. */
+    val liteRtLmAvailable: Boolean get() = BuildConfigFlags.liteRtLmAvailable()
+
+    init {
+        viewModelScope.launch { correctionChainRepository.pruneUnavailableOfflineEntries() }
+    }
 
     /** The user's correction fallback chain (insertion order; execution always runs offline
      *  entries before online ones -- see [CorrectionChainRepository.executionOrder]). */

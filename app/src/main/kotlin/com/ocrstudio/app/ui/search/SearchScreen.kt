@@ -13,11 +13,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
@@ -55,11 +58,15 @@ private fun SearchResultItem(hit: PageSearchHit) {
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         androidx.compose.foundation.layout.Column(Modifier.padding(12.dp)) {
             Text("Page ${hit.pageNumber}", style = MaterialTheme.typography.labelMedium)
-            Text(
-                hit.correctedText.take(200),
-                style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
-                maxLines = 3
-            )
+            // Rtl LocalLayoutDirection so this multi-line snippet wraps and aligns from the
+            // right like Arabic text should, not just gets the right bidi run order.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Text(
+                    hit.correctedText.take(200),
+                    style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
+                    maxLines = 3
+                )
+            }
         }
     }
 }

@@ -3,13 +3,16 @@ package com.ocrstudio.core.ui.components
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.LayoutDirection
 import com.ocrstudio.core.ui.theme.ErrorColor
 import com.ocrstudio.core.ui.theme.SuccessColor
 
@@ -96,13 +99,16 @@ fun WordDiffText(rawText: String, correctedText: String, modifier: Modifier = Mo
             if (index != aligned.lastIndex) append(" ")
         }
     }
-    Text(
-        text = annotated,
-        // Base the paragraph's bidi direction on its actual content rather than the app's
-        // ambient LayoutDirection (which is LTR whenever the device locale is English) --
-        // otherwise this Arabic OCR text can visually misorder even though the underlying
-        // string itself is correct.
-        style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content),
-        modifier = modifier
-    )
+    // Two separate things are needed for Arabic OCR text to read correctly under an LTR app
+    // shell: textDirection = Content picks the right bidi base direction for run ordering, and
+    // providing an Rtl LocalLayoutDirection makes the (otherwise ambient-LTR-resolved) default
+    // TextAlign.Start actually mean "align right" -- without it, multi-line Arabic paragraphs
+    // still wrap and align as if they were LTR, which reads as "reversed".
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Text(
+            text = annotated,
+            style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content),
+            modifier = modifier
+        )
+    }
 }

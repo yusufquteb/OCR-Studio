@@ -67,7 +67,14 @@ fun ModelsScreen(onOpenAiSettings: () -> Unit, viewModel: ModelsViewModel = hilt
 
             item {
                 Text("Correction models", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
-                if (viewModel.availableLlmModels.isEmpty()) {
+                if (!viewModel.liteRtLmAvailable) {
+                    Text(
+                        stringResource(R.string.models_offline_correction_unavailable),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                } else if (viewModel.availableLlmModels.isEmpty()) {
                     Text(
                         stringResource(R.string.models_no_offline_llm_for_device),
                         style = MaterialTheme.typography.bodySmall,
@@ -77,8 +84,10 @@ fun ModelsScreen(onOpenAiSettings: () -> Unit, viewModel: ModelsViewModel = hilt
                 }
             }
 
-            items(viewModel.availableLlmModels, key = { it.id }) { model ->
-                LlmModelCard(model = model, viewModel = viewModel)
+            if (viewModel.liteRtLmAvailable) {
+                items(viewModel.availableLlmModels, key = { it.id }) { model ->
+                    LlmModelCard(model = model, viewModel = viewModel)
+                }
             }
 
             item {

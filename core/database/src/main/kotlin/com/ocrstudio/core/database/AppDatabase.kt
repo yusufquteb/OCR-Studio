@@ -24,7 +24,7 @@ import com.ocrstudio.core.database.entity.WordFts
 import com.ocrstudio.core.database.entity.WordRecord
 
 const val DATABASE_NAME = "ocr_studio.db"
-const val DATABASE_VERSION = 2
+const val DATABASE_VERSION = 3
 
 @Database(
     entities = [

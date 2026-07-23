@@ -10,5 +10,9 @@ enum class ExportFormat(val extension: String, val mimeType: String) {
     // Original scanned page image with an invisible, positioned text layer on top (same trick
     // OCRmyPDF uses): the page keeps its exact original margins, page numbers, and layout
     // because the visible content *is* the original render, not a reconstruction.
-    SEARCHABLE_PDF("pdf", "application/pdf")
+    SEARCHABLE_PDF("pdf", "application/pdf"),
+    // Corrected text laid out as a real Word document: same page setup as the PDF export's
+    // printable area (A4, 1" margins), one Word page per source page, and an auto-numbering
+    // page field in the footer -- see WordExportPlugin.
+    WORD("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 }

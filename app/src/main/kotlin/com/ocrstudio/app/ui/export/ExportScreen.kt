@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
@@ -57,7 +58,12 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
                     FilterChip(
                         selected = selectedJob?.id == job.id,
                         onClick = { selectedJob = job },
-                        label = { Text(job.title) },
+                        label = {
+                            Text(
+                                job.title,
+                                style = MaterialTheme.typography.labelLarge.copy(textDirection = TextDirection.Content)
+                            )
+                        },
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
