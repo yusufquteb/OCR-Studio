@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">OCR Studio</string>
+    <string name="common_ok">OK</string>
 
     <!-- Navigation -->
     <string name="nav_library">Home</string>
@@ -18,6 +19,13 @@
     <string name="jobs_title">Jobs</string>
     <string name="jobs_empty_title">No active jobs</string>
     <string name="jobs_empty_subtitle">Start a new scan from Home to see its progress here</string>
+
+    <!-- Batch add -->
+    <string name="library_batch_add">Batch scan</string>
+    <string name="library_batch_no_engine">No OCR engine is downloaded yet. Download one from Settings → Models &amp; AI first.</string>
+    <string name="library_batch_queued">%1$d job(s) queued.</string>
+    <string name="library_batch_skipped_all">Not enough free storage to queue: %1$s</string>
+    <string name="library_batch_partial">%1$d job(s) queued. Skipped due to low storage: %2$s</string>
     <string name="job_status_queued">Queued</string>
     <string name="job_status_running">Running</string>
     <string name="job_status_paused">Paused</string>
@@ -73,6 +81,7 @@
     <string name="search_title">Search</string>
     <string name="search_hint">Search across all books…</string>
     <string name="search_no_results">No results</string>
+    <string name="search_recent_title">Recent searches</string>
 
     <!-- Models -->
     <string name="models_title">Models</string>
@@ -96,6 +105,8 @@
     <string name="export_preview_summary">%1$d pages will be exported as %2$s</string>
     <string name="export_start">Save</string>
     <string name="export_history">Export history</string>
+    <string name="export_empty_title">No books to export yet</string>
+    <string name="export_empty_subtitle">Finish an OCR job to export it as PDF, DOCX, TXT and more</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

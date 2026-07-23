@@ -55,6 +55,15 @@ fun ExportScreen(viewModel: ExportViewModel = hiltViewModel()) {
     }
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.export_title)) }) }) { padding ->
+        if (jobs.isEmpty()) {
+            com.ocrstudio.core.ui.components.EmptyState(
+                icon = androidx.compose.material.icons.Icons.Filled.Upload,
+                title = stringResource(R.string.export_empty_title),
+                subtitle = stringResource(R.string.export_empty_subtitle),
+                modifier = Modifier.padding(padding)
+            )
+            return@Scaffold
+        }
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             Text(stringResource(R.string.export_select_job), style = MaterialTheme.typography.labelMedium)
             LazyColumn(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {

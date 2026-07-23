@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -25,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -62,6 +64,7 @@ fun LibraryScreen(
     val allJobs by viewModel.jobs.collectAsState()
     val jobs = allJobs.filter { it.status == JobStatus.DONE }
     val availableEngines by viewModel.availableEngineIds.collectAsState()
+    val batchAddMessage by viewModel.batchAddMessage.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -81,14 +84,39 @@ fun LibraryScreen(
         }
     }
 
+    val pickMultiplePdfsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            viewModel.onMultiplePdfsPicked(uris)
+        }
+    }
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.library_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.library_title)) },
+                actions = {
+                    IconButton(onClick = { pickMultiplePdfsLauncher.launch(arrayOf("application/pdf")) }) {
+                        Icon(Icons.Filled.LibraryAdd, contentDescription = stringResource(R.string.library_batch_add))
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { pickPdfLauncher.launch(arrayOf("application/pdf")) },
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.library_add_pdf)) }
             )
+        },
+        snackbarHost = {
+            batchAddMessage?.let { message ->
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = { TextButton(onClick = viewModel::clearBatchAddMessage) { Text(stringResource(R.string.common_ok)) } }
+                ) { Text(message) }
+            }
         }
     ) { padding ->
         if (jobs.isEmpty()) {

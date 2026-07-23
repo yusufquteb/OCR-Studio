@@ -12,6 +12,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -40,8 +41,20 @@ private val bottomNavItems = listOf(
 )
 
 @Composable
-fun OcrStudioNavHost() {
+fun OcrStudioNavHost(
+    pendingJobId: String? = null,
+    onPendingJobIdConsumed: () -> Unit = {}
+) {
     val navController = rememberNavController()
+
+    // Deep-links a tap on the OCR-processing notification straight into that job's progress
+    // screen, on top of whatever the user was already looking at.
+    LaunchedEffect(pendingJobId) {
+        if (pendingJobId != null) {
+            navController.navigate(Destination.JobProgress.createRoute(pendingJobId))
+            onPendingJobIdConsumed()
+        }
+    }
 
     Scaffold(
         bottomBar = { OcrStudioBottomBar(navController) }
