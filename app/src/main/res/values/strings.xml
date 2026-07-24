@@ -1,17 +1,37 @@
 <resources>
     <string name="app_name">OCR Studio</string>
+    <string name="common_ok">OK</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Welcome to OCR Studio</string>
+    <string name="onboarding_subtitle">Scan Arabic PDFs, recognize their text with on-device OCR, and review and export the results -- all offline by default.</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_resume_job">Resuming your last job…</string>
 
     <!-- Navigation -->
-    <string name="nav_library">Library</string>
+    <string name="nav_library">Home</string>
+    <string name="nav_jobs">Jobs</string>
     <string name="nav_search">Search</string>
     <string name="nav_models">Models</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Library / Home -->
     <string name="library_title">My Books</string>
-    <string name="library_empty_title">No books yet</string>
-    <string name="library_empty_subtitle">Tap + to add an Arabic PDF and start OCR processing</string>
-    <string name="library_add_pdf">Add PDF</string>
+    <string name="library_empty_title">No finished books yet</string>
+    <string name="library_empty_subtitle">Tap Scan to add an Arabic PDF and start OCR processing</string>
+    <string name="library_add_pdf">Scan</string>
+
+    <!-- Jobs -->
+    <string name="jobs_title">Jobs</string>
+    <string name="jobs_empty_title">No active jobs</string>
+    <string name="jobs_empty_subtitle">Start a new scan from Home to see its progress here</string>
+
+    <!-- Batch add -->
+    <string name="library_batch_add">Batch scan</string>
+    <string name="library_batch_no_engine">No OCR engine is downloaded yet. Download one from Settings → Models &amp; AI first.</string>
+    <string name="library_batch_queued">%1$d job(s) queued.</string>
+    <string name="library_batch_skipped_all">Not enough free storage to queue: %1$s</string>
+    <string name="library_batch_partial">%1$d job(s) queued. Skipped due to low storage: %2$s</string>
     <string name="job_status_queued">Queued</string>
     <string name="job_status_running">Running</string>
     <string name="job_status_paused">Paused</string>
@@ -30,12 +50,23 @@
     <string name="new_job_ocr_engine">OCR engine</string>
     <string name="new_job_no_engine_warning">No OCR engine is downloaded yet. Download Tesseract (or PaddleOCR) from the Models screen before starting a job -- otherwise it will fail immediately.</string>
     <string name="new_job_go_to_models">Go to Models</string>
+    <string name="new_job_tashkeel_mode">Diacritics handling</string>
+    <string name="new_job_tashkeel_exact">Exact (preserve as scanned)</string>
+    <string name="new_job_tashkeel_normal">Normal</string>
+    <string name="new_job_tashkeel_smart">Smart (AI-complete)</string>
     <string name="new_job_correction_mode">Correction mode</string>
     <string name="new_job_correction_rules_only">Rules only</string>
     <string name="new_job_correction_rules_and_llm">Rules + LLM</string>
     <string name="new_job_keep_images">Keep page images</string>
     <string name="new_job_preview_step">Preprocessing preview</string>
     <string name="new_job_start">Start job</string>
+    <string name="new_job_step_file">1. File</string>
+    <string name="new_job_step_options">2. Options</string>
+    <string name="new_job_step_engine">3. Engine</string>
+    <string name="new_job_step_review">4. Review &amp; start</string>
+    <string name="new_job_next">Next</string>
+    <string name="new_job_back">Back</string>
+    <string name="new_job_large_pdf_warning">This PDF has %1$d pages. Processing may take about %2$d minutes.</string>
 
     <!-- Job Progress -->
     <string name="progress_title">Job Progress</string>
@@ -44,6 +75,8 @@
     <string name="progress_cancel">Cancel</string>
     <string name="progress_pages_per_minute">%1$.1f pages/min</string>
     <string name="progress_eta">ETA %1$d min</string>
+    <string name="progress_remaining">Estimated remaining: %1$s</string>
+    <string name="progress_current_task">Recognizing text (%1$s)</string>
     <string name="progress_errors">%1$d errors</string>
 
     <!-- Review -->
@@ -58,6 +91,7 @@
     <string name="search_title">Search</string>
     <string name="search_hint">Search across all books…</string>
     <string name="search_no_results">No results</string>
+    <string name="search_recent_title">Recent searches</string>
 
     <!-- Models -->
     <string name="models_title">Models</string>
@@ -77,11 +111,19 @@
     <string name="export_title">Export</string>
     <string name="export_select_job">Select job</string>
     <string name="export_select_format">Select format</string>
-    <string name="export_start">Export</string>
+    <string name="export_preview">Preview</string>
+    <string name="export_preview_summary">%1$d pages will be exported as %2$s</string>
+    <string name="export_start">Save</string>
     <string name="export_history">Export history</string>
+    <string name="export_empty_title">No books to export yet</string>
+    <string name="export_empty_subtitle">Finish an OCR job to export it as PDF, DOCX, TXT and more</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
+    <string name="settings_models_ai_title">Models &amp; AI</string>
+    <string name="settings_models_ai_subtitle">Manage OCR engines, on-device and online correction models</string>
+    <string name="settings_export_title">Export</string>
+    <string name="settings_export_subtitle">Export a book to PDF, DOCX, TXT, Markdown and more</string>
     <string name="settings_default_batch_size">Default batch size</string>
     <string name="settings_default_dpi">Default DPI</string>
     <string name="settings_keep_images">Keep page images by default</string>
@@ -104,6 +146,7 @@
     <string name="models_offline_correction_unavailable">On-device AI correction isn\'t available in this build. Add an online model below (with your own API key) to get AI-assisted correction.</string>
     <string name="review_ai_correction_applied">AI correction applied</string>
     <string name="review_ai_correction_not_applied">Rule-based correction only</string>
+    <string name="review_tashkeel_ai_completed">⚠️ Diacritics completed by AI</string>
     <string name="ai_settings_chain_title">Correction chain</string>
     <string name="ai_settings_chain_subtitle">Up to 4 models, tried in order. Offline models always run before online ones.</string>
     <string name="ai_settings_chain_empty">No models in the chain yet. Add models below.</string>
@@ -114,4 +157,34 @@
     <string name="settings_online_correction_get_key">Get key</string>
     <string name="settings_online_correction_refresh">Refresh</string>
     <string name="settings_online_correction_available_count">%1$d of %2$d models available</string>
+
+    <!-- Cancel (generic) -->
+    <string name="cancel">Cancel</string>
+
+    <!-- Reference Dictionaries -->
+    <string name="models_section_ref_dicts">Reference dictionaries (optional)</string>
+    <string name="models_ref_dicts_subtitle">Download domain vocabulary for exact diacritics lookup. Never required — if absent, AI reconstruction is used instead.</string>
+
+    <!-- Job progress — book memory -->
+    <string name="progress_clear_memory_title">Clear book memory</string>
+    <string name="progress_clear_memory_message">This will delete all learned corrections and glossary terms for this book. Future pages will not benefit from previous corrections.</string>
+    <string name="progress_clear_memory_confirm">Clear</string>
+
+    <!-- Review — multi-level scope and ReviewType -->
+    <string name="review_scope_label">Scope</string>
+    <string name="review_scope_page">This page</string>
+    <string name="review_scope_book">Whole book</string>
+    <string name="review_compare">Compare providers</string>
+    <string name="review_compare_no_results">No results yet. Try again.</string>
+    <string name="review_compare_use_this">Use this</string>
+    <string name="review_type_label">Review type</string>
+
+    <!-- Correction scope toggles (wizard step 4) -->
+    <string name="new_job_correction_scope">Correction options</string>
+    <string name="scope_dont_change_any_word">Don\'t change any word</string>
+    <string name="scope_keep_diacritics_as_scanned">Keep diacritics as scanned</string>
+    <string name="scope_fix_diacritics_only">Fix diacritics only</string>
+    <string name="scope_fix_spelling_only">Fix spelling only</string>
+    <string name="scope_fix_punctuation">Fix punctuation</string>
+    <string name="scope_reformat_paragraphs">Reformat paragraphs</string>
 </resources>

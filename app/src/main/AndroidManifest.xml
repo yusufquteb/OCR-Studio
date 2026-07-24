@@ -23,7 +23,9 @@
 
         <activity
             android:name=".MainActivity"
+            android:enableOnBackInvokedCallback="true"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.OcrStudio">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

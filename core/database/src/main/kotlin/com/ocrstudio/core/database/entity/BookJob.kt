@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.ocrstudio.core.common.JobStatus
+import com.ocrstudio.core.common.TashkeelMode
 
 @Entity(
     tableName = "book_jobs",
@@ -22,6 +23,8 @@ data class BookJob(
     val ocrEngineId: String = "tesseract",
     val llmModelId: String? = null,        // null = rule-based correction only
     val preprocessConfigJson: String,      // serialized PreprocessConfig
+    val tashkeelMode: TashkeelMode = TashkeelMode.NORMAL,
+    val correctionScopeJson: String = "{}",   // serialized CorrectionScope; defaults to standard
     val status: JobStatus = JobStatus.QUEUED,
     val createdAtEpochMs: Long,
     val updatedAtEpochMs: Long,

@@ -10,6 +10,8 @@ import com.ocrstudio.core.common.MAX_CORRECTION_CHAIN_SIZE
 import com.ocrstudio.core.common.OnlineModelCatalog
 import com.ocrstudio.core.common.OnlineModelInfo
 import com.ocrstudio.core.common.OnlineProvider
+import com.ocrstudio.core.common.ReferenceDictionaryCatalog
+import com.ocrstudio.core.common.ReferenceDictionaryInfo
 import com.ocrstudio.engine.correction.ProviderModelChecker
 import com.ocrstudio.worker.AssetDownloadManager
 import com.ocrstudio.worker.BuildConfigFlags
@@ -148,4 +150,22 @@ class ModelsViewModel @Inject constructor(
             assetDownloadManager.importLocalFile(uri, assetDownloadManager.llmModelDestination(model))
         }
     }
+
+    val referenceDictionaries: List<ReferenceDictionaryInfo> get() = ReferenceDictionaryCatalog.ALL
+
+    fun refDictStatusFlow(info: ReferenceDictionaryInfo): Flow<DownloadState> =
+        assetDownloadManager.observe(uniqueWorkNameFor(assetDownloadManager.referenceDictionaryDestination(info)))
+
+    fun downloadRefDict(info: ReferenceDictionaryInfo) {
+        assetDownloadManager.downloadReferenceDictionary(info)
+    }
+
+    fun pauseRefDict(info: ReferenceDictionaryInfo) =
+        assetDownloadManager.pause(uniqueWorkNameFor(assetDownloadManager.referenceDictionaryDestination(info)))
+
+    fun cancelRefDict(info: ReferenceDictionaryInfo) =
+        assetDownloadManager.cancel(uniqueWorkNameFor(assetDownloadManager.referenceDictionaryDestination(info)))
+
+    fun deleteRefDict(info: ReferenceDictionaryInfo) =
+        assetDownloadManager.delete(assetDownloadManager.referenceDictionaryDestination(info))
 }

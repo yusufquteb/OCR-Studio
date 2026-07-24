@@ -14,20 +14,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -37,6 +40,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -59,8 +63,10 @@ fun LibraryScreen(
     onOpenJob: (String) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
-    val jobs by viewModel.jobs.collectAsState()
+    val allJobs by viewModel.jobs.collectAsState()
+    val jobs = allJobs.filter { it.status == JobStatus.DONE }
     val availableEngines by viewModel.availableEngineIds.collectAsState()
+    val batchAddMessage by viewModel.batchAddMessage.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -80,11 +86,42 @@ fun LibraryScreen(
         }
     }
 
+    val pickMultiplePdfsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            viewModel.onMultiplePdfsPicked(uris)
+        }
+    }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.library_title)) }) },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(stringResource(R.string.library_title)) },
+                actions = {
+                    IconButton(onClick = { pickMultiplePdfsLauncher.launch(arrayOf("application/pdf")) }) {
+                        Icon(Icons.Filled.LibraryAdd, contentDescription = stringResource(R.string.library_batch_add))
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(onClick = { pickPdfLauncher.launch(arrayOf("application/pdf")) }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.library_add_pdf))
+            ExtendedFloatingActionButton(
+                onClick = { pickPdfLauncher.launch(arrayOf("application/pdf")) },
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.library_add_pdf)) }
+            )
+        },
+        snackbarHost = {
+            batchAddMessage?.let { message ->
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = { TextButton(onClick = viewModel::clearBatchAddMessage) { Text(stringResource(R.string.common_ok)) } }
+                ) { Text(message) }
             }
         }
     ) { padding ->
@@ -113,7 +150,7 @@ fun LibraryScreen(
 }
 
 @Composable
-private fun JobListItem(
+internal fun JobListItem(
     job: BookJob,
     availableEngines: List<String>,
     onClick: () -> Unit,
@@ -187,7 +224,7 @@ private fun JobListItem(
 }
 
 @Composable
-private fun statusChip(status: JobStatus) {
+internal fun statusChip(status: JobStatus) {
     val (labelRes, tone) = when (status) {
         JobStatus.QUEUED -> R.string.job_status_queued to ChipTone.NEUTRAL
         JobStatus.RUNNING -> R.string.job_status_running to ChipTone.NEUTRAL
