@@ -15,4 +15,7 @@ interface CorrectionMemoryDao {
     // the most recent correction when the same word was corrected more than once.
     @Query("SELECT * FROM correction_memory_entries WHERE bookId = :bookId ORDER BY createdAtEpochMs ASC")
     suspend fun getByBook(bookId: String): List<CorrectionMemoryEntry>
+
+    @Query("DELETE FROM correction_memory_entries WHERE bookId = :bookId")
+    suspend fun clearForBook(bookId: String)
 }

@@ -157,4 +157,34 @@
     <string name="settings_online_correction_get_key">Get key</string>
     <string name="settings_online_correction_refresh">Refresh</string>
     <string name="settings_online_correction_available_count">%1$d of %2$d models available</string>
+
+    <!-- Cancel (generic) -->
+    <string name="cancel">Cancel</string>
+
+    <!-- Reference Dictionaries -->
+    <string name="models_section_ref_dicts">Reference dictionaries (optional)</string>
+    <string name="models_ref_dicts_subtitle">Download domain vocabulary for exact diacritics lookup. Never required — if absent, AI reconstruction is used instead.</string>
+
+    <!-- Job progress — book memory -->
+    <string name="progress_clear_memory_title">Clear book memory</string>
+    <string name="progress_clear_memory_message">This will delete all learned corrections and glossary terms for this book. Future pages will not benefit from previous corrections.</string>
+    <string name="progress_clear_memory_confirm">Clear</string>
+
+    <!-- Review — multi-level scope and ReviewType -->
+    <string name="review_scope_label">Scope</string>
+    <string name="review_scope_page">This page</string>
+    <string name="review_scope_book">Whole book</string>
+    <string name="review_compare">Compare providers</string>
+    <string name="review_compare_no_results">No results yet. Try again.</string>
+    <string name="review_compare_use_this">Use this</string>
+    <string name="review_type_label">Review type</string>
+
+    <!-- Correction scope toggles (wizard step 4) -->
+    <string name="new_job_correction_scope">Correction options</string>
+    <string name="scope_dont_change_any_word">Don\'t change any word</string>
+    <string name="scope_keep_diacritics_as_scanned">Keep diacritics as scanned</string>
+    <string name="scope_fix_diacritics_only">Fix diacritics only</string>
+    <string name="scope_fix_spelling_only">Fix spelling only</string>
+    <string name="scope_fix_punctuation">Fix punctuation</string>
+    <string name="scope_reformat_paragraphs">Reformat paragraphs</string>
 </resources>

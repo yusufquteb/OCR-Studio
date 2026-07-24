@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ocrstudio.core.common.AppContext
+import com.ocrstudio.core.common.CorrectionScope
+import com.ocrstudio.core.common.CorrectionScopeSerializer
 import com.ocrstudio.core.common.DpiPreset
 import com.ocrstudio.core.common.JobStatus
 import com.ocrstudio.core.common.OcrEngineIds
@@ -43,7 +45,8 @@ data class NewJobFormState(
     val useLlmCorrection: Boolean = false,
     val llmModelId: String? = null,
     val keepImages: Boolean = false,
-    val tashkeelMode: TashkeelMode = TashkeelMode.NORMAL
+    val tashkeelMode: TashkeelMode = TashkeelMode.NORMAL,
+    val correctionScope: CorrectionScope = CorrectionScope()
 )
 
 @HiltViewModel
@@ -173,6 +176,7 @@ class NewJobWizardViewModel @Inject constructor(
             llmModelId = if (state.useLlmCorrection) state.llmModelId else null,
             preprocessConfigJson = PreprocessConfigSerializer.encode(configFor(state.dpiPreset)),
             tashkeelMode = state.tashkeelMode,
+            correctionScopeJson = CorrectionScopeSerializer.encode(state.correctionScope),
             status = JobStatus.QUEUED,
             createdAtEpochMs = now,
             updatedAtEpochMs = now

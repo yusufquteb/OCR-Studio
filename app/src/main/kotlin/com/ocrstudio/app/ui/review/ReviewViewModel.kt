@@ -7,8 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ocrstudio.core.common.AppContext
 import com.ocrstudio.core.common.CorrectionChainEntry
+import com.ocrstudio.core.common.CorrectionScopeSerializer
 import com.ocrstudio.core.common.OcrConfig
 import com.ocrstudio.core.common.PageSegmentationMode
+import com.ocrstudio.core.common.ReviewType
+import com.ocrstudio.core.database.dao.BookGlossaryDao
 import com.ocrstudio.core.database.dao.BookJobDao
 import com.ocrstudio.core.database.dao.CorrectionMemoryDao
 import com.ocrstudio.core.database.dao.PageRecordDao
@@ -24,6 +27,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +37,12 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 data class UndoRedoState(val canUndo: Boolean = false, val canRedo: Boolean = false)
+
+data class CompareResult(
+    val entry: CorrectionChainEntry,
+    val correctedText: String,
+    val llmApplied: Boolean
+)
 
 @HiltViewModel(assistedFactory = ReviewViewModel.Factory::class)
 class ReviewViewModel @AssistedInject constructor(
@@ -44,6 +55,7 @@ class ReviewViewModel @AssistedInject constructor(
     private val parserProfileRegistry: ParserProfileRegistry,
     private val correctionChainRepository: CorrectionChainRepository,
     private val correctionMemoryDao: CorrectionMemoryDao,
+    private val bookGlossaryDao: BookGlossaryDao,
     @AppContext private val context: Context
 ) : ViewModel() {
 
@@ -144,6 +156,69 @@ class ReviewViewModel @AssistedInject constructor(
             )
     }
 
+    private val _compareResults = MutableStateFlow<List<CompareResult>>(emptyList())
+    val compareResults: StateFlow<List<CompareResult>> = _compareResults
+
+    private val _isComparing = MutableStateFlow(false)
+    val isComparing: StateFlow<Boolean> = _isComparing
+
+    /** Runs the same raw text through multiple providers in parallel and surfaces results for
+     *  side-by-side comparison; doesn't persist anything until the user calls saveCorrection. */
+    fun compareProviders(page: PageRecord, entries: List<CorrectionChainEntry>) {
+        viewModelScope.launch {
+            _isComparing.value = true
+            _compareResults.value = emptyList()
+            val results = entries.map { entry ->
+                async {
+                    val result = runCatching { pageProcessor.recorrectWithEntry(page.rawText, entry) }.getOrNull()
+                    if (result != null) CompareResult(entry, result.correctedText, result.llmApplied) else null
+                }
+            }.awaitAll().filterNotNull()
+            _compareResults.value = results
+            _isComparing.value = false
+        }
+    }
+
+    fun clearCompareResults() {
+        _compareResults.value = emptyList()
+    }
+
+    /** Re-runs correction for a page range (chapter-scope) with a chosen provider. */
+    fun recorrectChapter(pages: List<PageRecord>, entry: CorrectionChainEntry) {
+        viewModelScope.launch {
+            for (page in pages) {
+                val result = runCatching { pageProcessor.recorrectWithEntry(page.rawText, entry) }.getOrNull()
+                    ?: continue
+                pageRecordDao.insert(page.copy(correctedText = result.correctedText, aiCorrectionApplied = result.llmApplied))
+            }
+        }
+    }
+
+    /** Re-runs correction for all flagged pages in the job with a chosen provider. */
+    fun recorrectBook(entry: CorrectionChainEntry) {
+        viewModelScope.launch {
+            val pages = pagesNeedingReview.value
+            recorrectChapter(pages, entry)
+        }
+    }
+
+    /** Re-runs correction with a specific ReviewType, applying its system-prompt specialization. */
+    fun recorrectWithType(page: PageRecord, entry: CorrectionChainEntry, reviewType: ReviewType) {
+        viewModelScope.launch {
+            val suffix = reviewType.systemPromptSuffix()
+            val result = runCatching { pageProcessor.recorrectWithEntry(page.rawText, entry, suffix) }.getOrNull()
+                ?: return@launch
+            if (reviewType == ReviewType.TRANSLATION) {
+                pageRecordDao.insert(page.copy(translatedText = result.correctedText))
+            } else {
+                undoStacks.getOrPut(page.id) { ArrayDeque() }.addLast(page.correctedText)
+                redoStacks[page.id]?.clear()
+                updateUndoRedoState(page.id)
+                pageRecordDao.insert(page.copy(correctedText = result.correctedText, aiCorrectionApplied = result.llmApplied))
+            }
+        }
+    }
+
     /** Re-runs only the AI-correction step against the page's existing raw OCR text with a
      *  single chosen provider, without re-running OCR. */
     fun recorrectPage(page: PageRecord, entry: CorrectionChainEntry) {
@@ -179,7 +254,8 @@ class ReviewViewModel @AssistedInject constructor(
                     primaryEngine = engine,
                     parserProfile = parserProfile,
                     llmModelId = job.llmModelId,
-                    tashkeelMode = job.tashkeelMode
+                    tashkeelMode = job.tashkeelMode,
+                    correctionScope = CorrectionScopeSerializer.decode(job.correctionScopeJson)
                 )
             } finally {
                 handle.close()

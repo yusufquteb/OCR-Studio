@@ -24,6 +24,7 @@ data class BookJob(
     val llmModelId: String? = null,        // null = rule-based correction only
     val preprocessConfigJson: String,      // serialized PreprocessConfig
     val tashkeelMode: TashkeelMode = TashkeelMode.NORMAL,
+    val correctionScopeJson: String = "{}",   // serialized CorrectionScope; defaults to standard
     val status: JobStatus = JobStatus.QUEUED,
     val createdAtEpochMs: Long,
     val updatedAtEpochMs: Long,

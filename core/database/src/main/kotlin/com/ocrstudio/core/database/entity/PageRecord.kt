@@ -33,5 +33,8 @@ data class PageRecord(
     val rawWordsJson: String? = null,
     // Set only under TashkeelMode.SMART, when a corrector ended up adding diacritics the raw
     // OCR text didn't have -- Review shows a "completed by AI" indicator when true.
-    val tashkeelAiCompleted: Boolean = false
+    val tashkeelAiCompleted: Boolean = false,
+    // Populated when the user runs ReviewType.TRANSLATION on this page; null otherwise.
+    // Stored separately so the Arabic correctedText is never overwritten.
+    val translatedText: String? = null
 )
