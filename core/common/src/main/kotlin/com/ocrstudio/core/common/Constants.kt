@@ -25,6 +25,52 @@ object AssetPaths {
     const val PADDLE_REC_AR_FILE = "rec_ar.onnx"
     const val PADDLE_DICT_AR_FILE = "dict_ar.txt"
     const val LLM_MODELS_DIR = "llm_models"
+    const val REFERENCE_DICT_DIR = "ref_dicts"
+}
+
+data class ReferenceDictionaryInfo(
+    val id: String,
+    val displayName: String,
+    val downloadUrl: String,
+    val fileName: String,
+    val approxSizeKb: Int,
+    val domain: String,
+    val licenseNote: String
+)
+
+object ReferenceDictionaryCatalog {
+    val ALL: List<ReferenceDictionaryInfo> = listOf(
+        ReferenceDictionaryInfo(
+            id = "quran_tashkeel",
+            displayName = "Qur'an vocabulary",
+            downloadUrl = "https://github.com/yusufquteb/ocr-ref-dicts/releases/download/v1/quran_tashkeel.dict",
+            fileName = "quran_tashkeel.dict",
+            approxSizeKb = 800,
+            domain = "quran",
+            licenseNote = "Public domain"
+        ),
+        ReferenceDictionaryInfo(
+            id = "hadith_terms",
+            displayName = "Hadith terminology",
+            downloadUrl = "https://github.com/yusufquteb/ocr-ref-dicts/releases/download/v1/hadith_terms.dict",
+            fileName = "hadith_terms.dict",
+            approxSizeKb = 600,
+            domain = "hadith",
+            licenseNote = "Public domain"
+        ),
+        ReferenceDictionaryInfo(
+            id = "fiqh_terms",
+            displayName = "Fiqh terminology",
+            downloadUrl = "https://github.com/yusufquteb/ocr-ref-dicts/releases/download/v1/fiqh_terms.dict",
+            fileName = "fiqh_terms.dict",
+            approxSizeKb = 400,
+            domain = "fiqh",
+            licenseNote = "Public domain"
+        )
+    )
+
+    fun byId(id: String): ReferenceDictionaryInfo? = ALL.find { it.id == id }
+    fun forDomain(domain: String): List<ReferenceDictionaryInfo> = ALL.filter { it.domain == domain }
 }
 
 object DownloadUrls {

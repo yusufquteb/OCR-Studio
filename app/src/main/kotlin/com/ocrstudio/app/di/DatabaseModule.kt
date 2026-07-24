@@ -4,6 +4,7 @@ import android.content.Context
 import com.ocrstudio.core.database.AppDatabase
 import com.ocrstudio.core.database.DatabaseFactory
 import com.ocrstudio.core.database.dao.BookDao
+import com.ocrstudio.core.database.dao.BookGlossaryDao
 import com.ocrstudio.core.database.dao.BookJobDao
 import com.ocrstudio.core.database.dao.CorrectionMemoryDao
 import com.ocrstudio.core.database.dao.ErrorRecordDao
@@ -39,4 +40,5 @@ object DatabaseModule {
     @Provides fun provideExportRecordDao(db: AppDatabase): ExportRecordDao = db.exportRecordDao()
     @Provides fun provideSearchDao(db: AppDatabase): SearchDao = db.searchDao()
     @Provides fun provideCorrectionMemoryDao(db: AppDatabase): CorrectionMemoryDao = db.correctionMemoryDao()
+    @Provides fun provideBookGlossaryDao(db: AppDatabase): BookGlossaryDao = db.bookGlossaryDao()
 }

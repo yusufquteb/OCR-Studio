@@ -47,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.ocrstudio.app.R
+import com.ocrstudio.core.common.CorrectionScope
 import com.ocrstudio.core.common.DpiPreset
 import kotlinx.coroutines.launch
 
@@ -311,6 +312,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reviewStep(
     }
 
     item {
+        Text(stringResource(R.string.new_job_correction_scope), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 8.dp))
+        CorrectionScopeToggles(form.correctionScope) { updated -> viewModel.update { it.copy(correctionScope = updated) } }
+    }
+
+    item {
         Button(
             onClick = { viewModel.generatePreview() },
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
@@ -325,6 +331,68 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reviewStep(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun CorrectionScopeToggles(scope: CorrectionScope, onChange: (CorrectionScope) -> Unit) {
+    Column {
+        ScopeToggleRow(
+            label = stringResource(R.string.scope_dont_change_any_word),
+            checked = scope.dontChangeAnyWord,
+            onCheckedChange = { onChange(scope.copy(dontChangeAnyWord = it)) }
+        )
+        ScopeToggleRow(
+            label = stringResource(R.string.scope_keep_diacritics_as_scanned),
+            checked = scope.keepDiacriticsAsScanned,
+            onCheckedChange = { onChange(scope.copy(keepDiacriticsAsScanned = it)) },
+            enabled = !scope.dontChangeAnyWord
+        )
+        ScopeToggleRow(
+            label = stringResource(R.string.scope_fix_diacritics_only),
+            checked = scope.fixDiacriticsOnly,
+            onCheckedChange = { onChange(scope.copy(fixDiacriticsOnly = it)) },
+            enabled = !scope.dontChangeAnyWord
+        )
+        ScopeToggleRow(
+            label = stringResource(R.string.scope_fix_spelling_only),
+            checked = scope.fixSpellingOnly,
+            onCheckedChange = { onChange(scope.copy(fixSpellingOnly = it)) },
+            enabled = !scope.dontChangeAnyWord && !scope.fixDiacriticsOnly
+        )
+        ScopeToggleRow(
+            label = stringResource(R.string.scope_fix_punctuation),
+            checked = scope.fixPunctuation,
+            onCheckedChange = { onChange(scope.copy(fixPunctuation = it)) },
+            enabled = !scope.dontChangeAnyWord && !scope.fixDiacriticsOnly
+        )
+        ScopeToggleRow(
+            label = stringResource(R.string.scope_reformat_paragraphs),
+            checked = scope.reformatParagraphs,
+            onCheckedChange = { onChange(scope.copy(reformatParagraphs = it)) },
+            enabled = !scope.dontChangeAnyWord
+        )
+    }
+}
+
+@Composable
+private fun ScopeToggleRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     }
 }
 

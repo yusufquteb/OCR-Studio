@@ -1,5 +1,6 @@
 package com.ocrstudio.engine.correction
 
+import com.ocrstudio.core.common.CorrectionScope
 import com.ocrstudio.core.common.LlmResult
 import javax.inject.Inject
 
@@ -19,7 +20,15 @@ data class PipelineResult(
 class CorrectionPipeline @Inject constructor(
     private val ruleEngine: RuleEngine
 ) {
-    suspend fun run(rawText: String, correctors: List<LlmCorrector>): PipelineResult {
+    suspend fun run(
+        rawText: String,
+        correctors: List<LlmCorrector>,
+        scope: CorrectionScope? = null
+    ): PipelineResult {
+        if (scope?.dontChangeAnyWord == true) {
+            return PipelineResult(rawText, 0f, llmApplied = false)
+        }
+
         val ruleResult = ruleEngine.correctText(rawText)
 
         if (correctors.isEmpty()) {

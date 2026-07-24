@@ -13,6 +13,7 @@ import com.ocrstudio.core.common.AppContext
 import com.ocrstudio.core.common.AssetPaths
 import com.ocrstudio.core.common.DownloadUrls
 import com.ocrstudio.core.common.LlmModelInfo
+import com.ocrstudio.core.common.ReferenceDictionaryInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -51,6 +52,12 @@ class AssetDownloadManager @Inject constructor(
 
     fun downloadLlmModel(model: LlmModelInfo): String =
         enqueue(model.downloadUrl, llmModelDestination(model), model.displayName)
+
+    fun referenceDictionaryDestination(info: ReferenceDictionaryInfo): File =
+        File(context.filesDir, "${AssetPaths.REFERENCE_DICT_DIR}/${info.fileName}")
+
+    fun downloadReferenceDictionary(info: ReferenceDictionaryInfo): String =
+        enqueue(info.downloadUrl, referenceDictionaryDestination(info), info.displayName)
 
     /** Fallback path when a bundled URL 404s: user pastes a custom URL for the same destination. */
     fun downloadFromCustomUrl(url: String, destination: File, label: String): String =

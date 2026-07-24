@@ -19,18 +19,19 @@ private const val SYSTEM_PROMPT =
  * ever constructed when the user has enabled online correction and supplied their own API key --
  * every other correction path in this app (rule-based, on-device LiteRT-LM) works fully offline.
  *
- * Gemini's generateContent REST shape and the OpenAI-compatible /chat/completions shape used by
- * OpenRouter and NVIDIA NIM are stable, publicly documented APIs. The Hugging Face Inference call
- * is more best-effort -- HF hosts models behind varying pipeline types (text-generation vs.
- * conversational), so the exact request/response shape can differ per model; if a given model
- * 404s or returns an unexpected shape, correction simply fails closed (chunk returned unmodified)
- * rather than crashing the pipeline.
+ * An optional [systemPromptSuffix] allows callers to inject glossary context, CorrectionScope
+ * constraints, or ReviewType-specific instructions without changing the interface or creating
+ * subclasses; empty string (the default) reproduces the previous behavior exactly.
  */
 class OnlineLlmCorrector(
     private val provider: OnlineProvider,
     private val modelId: String,
-    private val apiKey: String
+    private val apiKey: String,
+    private val systemPromptSuffix: String = ""
 ) : LlmCorrector {
+
+    private val effectiveSystemPrompt: String
+        get() = if (systemPromptSuffix.isBlank()) SYSTEM_PROMPT else "$SYSTEM_PROMPT\n\n$systemPromptSuffix"
 
     override suspend fun correct(chunk: String): LlmResult = withContext(Dispatchers.IO) {
         runCatching {
@@ -53,7 +54,7 @@ class OnlineLlmCorrector(
         val body = JSONObject().apply {
             put(
                 "systemInstruction",
-                JSONObject().put("parts", JSONArray().put(JSONObject().put("text", SYSTEM_PROMPT)))
+                JSONObject().put("parts", JSONArray().put(JSONObject().put("text", effectiveSystemPrompt)))
             )
             put(
                 "contents",
@@ -73,7 +74,7 @@ class OnlineLlmCorrector(
             put(
                 "messages",
                 JSONArray()
-                    .put(JSONObject().put("role", "system").put("content", SYSTEM_PROMPT))
+                    .put(JSONObject().put("role", "system").put("content", effectiveSystemPrompt))
                     .put(JSONObject().put("role", "user").put("content", chunk))
             )
             put("temperature", 0.0)
@@ -85,7 +86,7 @@ class OnlineLlmCorrector(
     private fun callHuggingFace(chunk: String): String {
         val url = URL("${provider.chatCompletionsUrl}/$modelId")
         val body = JSONObject().apply {
-            put("inputs", "$SYSTEM_PROMPT\n\n$chunk")
+            put("inputs", "$effectiveSystemPrompt\n\n$chunk")
             put("parameters", JSONObject().put("max_new_tokens", 2048).put("return_full_text", false))
         }
         val responseText = postJson(url, body, headers = mapOf("Authorization" to "Bearer $apiKey"))

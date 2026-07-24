@@ -6,16 +6,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -37,6 +43,26 @@ fun JobProgressScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val job = state.job
+    var showClearMemoryDialog by remember { mutableStateOf(false) }
+
+    if (showClearMemoryDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearMemoryDialog = false },
+            title = { Text(stringResource(R.string.progress_clear_memory_title)) },
+            text = { Text(stringResource(R.string.progress_clear_memory_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.clearBookMemory()
+                    showClearMemoryDialog = false
+                }) { Text(stringResource(R.string.progress_clear_memory_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearMemoryDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.progress_title)) }) }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
@@ -77,6 +103,13 @@ fun JobProgressScreen(
                 }
                 Button(onClick = viewModel::cancel) { Text(stringResource(R.string.progress_cancel)) }
                 Button(onClick = onOpenReview) { Text(stringResource(R.string.review_title)) }
+            }
+
+            OutlinedButton(
+                onClick = { showClearMemoryDialog = true },
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(stringResource(R.string.progress_clear_memory_title))
             }
         }
     }

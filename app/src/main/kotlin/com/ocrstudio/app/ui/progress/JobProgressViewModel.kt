@@ -3,7 +3,9 @@ package com.ocrstudio.app.ui.progress
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ocrstudio.core.common.JobStatus
+import com.ocrstudio.core.database.dao.BookGlossaryDao
 import com.ocrstudio.core.database.dao.BookJobDao
+import com.ocrstudio.core.database.dao.CorrectionMemoryDao
 import com.ocrstudio.core.database.dao.ErrorRecordDao
 import com.ocrstudio.core.database.dao.PageRecordDao
 import com.ocrstudio.core.database.entity.BookJob
@@ -32,7 +34,9 @@ class JobProgressViewModel @AssistedInject constructor(
     private val bookJobDao: BookJobDao,
     private val pageRecordDao: PageRecordDao,
     private val errorRecordDao: ErrorRecordDao,
-    private val jobScheduler: JobScheduler
+    private val jobScheduler: JobScheduler,
+    private val bookGlossaryDao: BookGlossaryDao,
+    private val correctionMemoryDao: CorrectionMemoryDao
 ) : ViewModel() {
 
     @AssistedFactory
@@ -84,6 +88,16 @@ class JobProgressViewModel @AssistedInject constructor(
         viewModelScope.launch {
             bookJobDao.updateStatus(jobId, JobStatus.FAILED, System.currentTimeMillis())
             jobScheduler.cancel(jobId)
+        }
+    }
+
+    /** Clears all book-level AI memory: glossary terms and correction-memory substitutions.
+     *  Caller is responsible for showing a confirmation dialog before invoking this. */
+    fun clearBookMemory() {
+        viewModelScope.launch {
+            val job = bookJobDao.getById(jobId) ?: return@launch
+            bookGlossaryDao.clearForBook(job.bookId)
+            correctionMemoryDao.clearForBook(job.bookId)
         }
     }
 }

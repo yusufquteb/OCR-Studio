@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ocrstudio.app.R
 import com.ocrstudio.core.common.CorrectorKind
 import com.ocrstudio.core.common.LlmModelInfo
+import com.ocrstudio.core.common.ReferenceDictionaryInfo
 import com.ocrstudio.worker.DownloadState
 
 @Composable
@@ -95,6 +96,46 @@ fun ModelsScreen(onOpenAiSettings: () -> Unit, viewModel: ModelsViewModel = hilt
                 Text(stringResource(R.string.models_section_online), style = MaterialTheme.typography.titleLarge)
                 OnlineCorrectionEntryCard(viewModel = viewModel, onOpenAiSettings = onOpenAiSettings)
             }
+
+            item {
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                Text(
+                    stringResource(R.string.models_section_ref_dicts),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    stringResource(R.string.models_ref_dicts_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                )
+            }
+
+            items(viewModel.referenceDictionaries, key = { it.id }) { info ->
+                RefDictCard(info = info, viewModel = viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RefDictCard(info: ReferenceDictionaryInfo, viewModel: ModelsViewModel) {
+    val state by remember(info.id) { viewModel.refDictStatusFlow(info) }.collectAsState(initial = DownloadState.Idle)
+    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            Text(info.displayName, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "~${info.approxSizeKb / 1024} MB · ${info.licenseNote}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            StatusRow(state)
+            DownloadActions(
+                state = state,
+                onDownload = { viewModel.downloadRefDict(info) },
+                onPause = { viewModel.pauseRefDict(info) },
+                onCancel = { viewModel.cancelRefDict(info) },
+                onDelete = { viewModel.deleteRefDict(info) }
+            )
         }
     }
 }

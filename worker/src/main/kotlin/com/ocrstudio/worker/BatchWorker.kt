@@ -9,6 +9,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.ocrstudio.core.common.CorrectionScopeSerializer
 import com.ocrstudio.core.common.JobStatus
 import com.ocrstudio.core.common.OcrEngineIds
 import com.ocrstudio.core.common.PageSegmentationMode
@@ -141,7 +142,8 @@ class BatchWorker @AssistedInject constructor(
                     primaryEngine = primaryEngine,
                     parserProfile = parserProfile,
                     llmModelId = job.llmModelId,
-                    tashkeelMode = job.tashkeelMode
+                    tashkeelMode = job.tashkeelMode,
+                    correctionScope = CorrectionScopeSerializer.decode(job.correctionScopeJson)
                 ).onFailure { throwable ->
                     errorCount++
                     errorRecordDao.insert(
