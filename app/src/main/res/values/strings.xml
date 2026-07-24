@@ -164,6 +164,12 @@
     <!-- Reference Dictionaries -->
     <string name="models_section_ref_dicts">Reference dictionaries (optional)</string>
     <string name="models_ref_dicts_subtitle">Download domain vocabulary for exact diacritics lookup. Never required — if absent, AI reconstruction is used instead.</string>
+    <string name="models_ref_dict_not_yet_available">Not yet published — will be available in a future update.</string>
+
+    <!-- Review — word zoom -->
+    <string name="review_tap_word_to_inspect">Tap a word to inspect its diacritics</string>
+    <string name="review_word_zoom_label">Word zoom</string>
+    <string name="review_close">Close</string>
 
     <!-- Job progress — book memory -->
     <string name="progress_clear_memory_title">Clear book memory</string>
