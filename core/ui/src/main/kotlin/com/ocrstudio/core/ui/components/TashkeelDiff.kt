@@ -23,8 +23,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.ocrstudio.engine.correction.Normalization
-
 /**
  * Character-level diacritics comparison between the raw scanned word and the AI-suggested form.
  * Shows a table of base letters with "OCR mark" vs "suggested mark" per character, highlighting
@@ -108,17 +106,18 @@ data class CharPair(
     val correctedMark: Char?
 )
 
+/** Strips all Arabic diacritic marks, returning the base-letter string. */
+private fun stripDiacritics(word: String): String = word.filter { !isDiacritic(it) }
+
 /** Aligns two Arabic words base-letter by base-letter, extracting diacritic marks per position. */
 private fun alignCharacters(raw: String, corrected: String): List<CharPair> {
-    val rawBase = Normalization.stripDiacritics(raw)
-    val correctedBase = Normalization.stripDiacritics(corrected)
+    val rawBase = stripDiacritics(raw)
+    val correctedBase = stripDiacritics(corrected)
 
     val rawMarks = extractMarkMap(raw)
     val correctedMarks = extractMarkMap(corrected)
 
-    val baseLetters = (rawBase + correctedBase).toSet()
-        .toList()
-        .let { rawBase.toList() }
+    val baseLetters = rawBase.toList()
 
     return baseLetters.mapIndexed { index, ch ->
         CharPair(
