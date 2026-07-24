@@ -9,6 +9,7 @@ import com.ocrstudio.core.common.AppContext
 import com.ocrstudio.core.common.CorrectionChainEntry
 import com.ocrstudio.core.common.CorrectionScopeSerializer
 import com.ocrstudio.core.common.OcrConfig
+import com.ocrstudio.core.common.OcrWordsSerializer
 import com.ocrstudio.core.common.PageSegmentationMode
 import com.ocrstudio.core.common.ReviewType
 import com.ocrstudio.core.database.dao.BookGlossaryDao
@@ -230,6 +231,52 @@ class ReviewViewModel @AssistedInject constructor(
             pageRecordDao.insert(page.copy(correctedText = result.correctedText, aiCorrectionApplied = result.llmApplied))
         }
     }
+
+    private val _wordZoomBitmap = MutableStateFlow<Bitmap?>(null)
+    val wordZoomBitmap: StateFlow<Bitmap?> = _wordZoomBitmap
+
+    /** Crops the bounding-box region for [wordText] out of the rendered page bitmap and scales it
+     *  up for display in the word-zoom slot next to TashkeelDiff.  Strips diacritics before
+     *  matching so the (possibly corrected) word still maps to its OCR box. */
+    fun cropWordBitmap(page: PageRecord, wordText: String) {
+        viewModelScope.launch {
+            val pageBitmap = _pageImages.value[page.id] ?: run {
+                val job = bookJobDao.getById(jobId) ?: return@launch
+                val handle = pdfPageRenderer.open(Uri.parse(job.pdfUri)).getOrNull() ?: return@launch
+                try {
+                    pdfPageRenderer.renderPage(handle, page.pageNumber - 1, job.dpi).getOrNull()
+                        ?.also { _pageImages.value = _pageImages.value + (page.id to it) }
+                } finally {
+                    handle.close()
+                }
+            } ?: return@launch
+
+            val words = OcrWordsSerializer.decode(page.rawWordsJson)
+            val targetBase = wordText.filter { it !in 'ً'..'ٟ' && it != 'ٓ' }
+            val match = words.firstOrNull { w ->
+                val base = w.text.filter { it !in 'ً'..'ٟ' && it != 'ٓ' }
+                base == targetBase || w.text == wordText
+            } ?: return@launch
+
+            val pad = 16
+            val l = (match.left - pad).coerceAtLeast(0)
+            val t = (match.top - pad).coerceAtLeast(0)
+            val r = (match.right + pad).coerceAtMost(pageBitmap.width)
+            val b = (match.bottom + pad).coerceAtMost(pageBitmap.height)
+            if (r <= l || b <= t) return@launch
+
+            val cropped = android.graphics.Bitmap.createBitmap(pageBitmap, l, t, r - l, b - t)
+            val minDim = minOf(cropped.width, cropped.height).coerceAtLeast(1)
+            _wordZoomBitmap.value = if (minDim < 200) {
+                val scale = 200f / minDim
+                android.graphics.Bitmap.createScaledBitmap(
+                    cropped, (cropped.width * scale).toInt(), (cropped.height * scale).toInt(), true
+                )
+            } else cropped
+        }
+    }
+
+    fun clearWordZoom() { _wordZoomBitmap.value = null }
 
     /** Re-runs the full page pipeline for one flagged page with a possibly different engine/DPI. */
     fun reprocessPage(page: PageRecord, engineId: String, dpi: Int) {

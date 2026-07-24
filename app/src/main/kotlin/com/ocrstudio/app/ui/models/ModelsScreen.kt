@@ -121,6 +121,7 @@ fun ModelsScreen(onOpenAiSettings: () -> Unit, viewModel: ModelsViewModel = hilt
 @Composable
 private fun RefDictCard(info: ReferenceDictionaryInfo, viewModel: ModelsViewModel) {
     val state by remember(info.id) { viewModel.refDictStatusFlow(info) }.collectAsState(initial = DownloadState.Idle)
+    val notYetPublished = (state as? DownloadState.Failed)?.message?.contains("404") == true
     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Column(Modifier.padding(16.dp)) {
             Text(info.displayName, style = MaterialTheme.typography.titleMedium)
@@ -128,14 +129,23 @@ private fun RefDictCard(info: ReferenceDictionaryInfo, viewModel: ModelsViewMode
                 "~${info.approxSizeKb / 1024} MB · ${info.licenseNote}",
                 style = MaterialTheme.typography.bodyMedium
             )
-            StatusRow(state)
-            DownloadActions(
-                state = state,
-                onDownload = { viewModel.downloadRefDict(info) },
-                onPause = { viewModel.pauseRefDict(info) },
-                onCancel = { viewModel.cancelRefDict(info) },
-                onDelete = { viewModel.deleteRefDict(info) }
-            )
+            if (notYetPublished) {
+                Text(
+                    stringResource(R.string.models_ref_dict_not_yet_available),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            } else {
+                StatusRow(state)
+                DownloadActions(
+                    state = state,
+                    onDownload = { viewModel.downloadRefDict(info) },
+                    onPause = { viewModel.pauseRefDict(info) },
+                    onCancel = { viewModel.cancelRefDict(info) },
+                    onDelete = { viewModel.deleteRefDict(info) }
+                )
+            }
         }
     }
 }

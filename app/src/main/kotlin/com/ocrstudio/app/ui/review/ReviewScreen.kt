@@ -85,6 +85,7 @@ fun ReviewScreen(
     val undoRedoState by viewModel.undoRedoState.collectAsState()
     val compareResults by viewModel.compareResults.collectAsState()
     val isComparing by viewModel.isComparing.collectAsState()
+    val wordZoomBitmap by viewModel.wordZoomBitmap.collectAsState()
 
     var showCompareSheet by remember { mutableStateOf(false) }
     var compareSheetPage by remember { mutableStateOf<PageRecord?>(null) }
@@ -124,6 +125,7 @@ fun ReviewScreen(
                     ReviewPageCard(
                         page = page,
                         image = pageImages[page.id],
+                        wordZoomBitmap = wordZoomBitmap,
                         onLoadImage = { viewModel.loadPageImage(page) },
                         correctionProviders = correctionProviders,
                         onSelectProvider = { entry -> viewModel.recorrectPage(page, entry) },
@@ -139,7 +141,9 @@ fun ReviewScreen(
                         onUndo = { viewModel.undo(page) },
                         onRedo = { viewModel.redo(page) },
                         onSave = { newText -> viewModel.saveCorrection(page, newText) },
-                        onReprocess = { engineId, dpi -> viewModel.reprocessPage(page, engineId, dpi) }
+                        onReprocess = { engineId, dpi -> viewModel.reprocessPage(page, engineId, dpi) },
+                        onWordSelected = { word -> viewModel.cropWordBitmap(page, word) },
+                        onClearWordZoom = { viewModel.clearWordZoom() }
                     )
                 }
             }
@@ -152,6 +156,7 @@ fun ReviewScreen(
 private fun ReviewPageCard(
     page: PageRecord,
     image: android.graphics.Bitmap?,
+    wordZoomBitmap: android.graphics.Bitmap?,
     onLoadImage: () -> Unit,
     correctionProviders: List<CorrectionChainEntry>,
     onSelectProvider: (CorrectionChainEntry) -> Unit,
@@ -163,7 +168,9 @@ private fun ReviewPageCard(
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onSave: (String) -> Unit,
-    onReprocess: (String, Int) -> Unit
+    onReprocess: (String, Int) -> Unit,
+    onWordSelected: (String) -> Unit,
+    onClearWordZoom: () -> Unit
 ) {
     var editedText by remember(page.id) { mutableStateOf(page.correctedText) }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -247,19 +254,67 @@ private fun ReviewPageCard(
                         )
                     }
 
-                    if (page.tashkeelAiCompleted && tashkeelWord != null) {
+                    if (page.tashkeelAiCompleted) {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                        val words = page.correctedText.split(Regex("\\s+")).filter { it.isNotBlank() }
-                        val rawWords = page.rawText.split(Regex("\\s+")).filter { it.isNotBlank() }
-                        val idx = words.indexOf(tashkeelWord)
-                        if (idx >= 0) {
-                            TashkeelDiff(
-                                rawWord = rawWords.getOrElse(idx) { "" },
-                                correctedWord = tashkeelWord!!,
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                            )
+                        Text(
+                            stringResource(R.string.review_tap_word_to_inspect),
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        val correctedWords = remember(page.correctedText) {
+                            page.correctedText.split(Regex("\\s+")).filter { it.isNotBlank() }
                         }
-                        TextButton(onClick = { tashkeelWord = null }) { Text("Close") }
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            correctedWords.forEach { word ->
+                                FilterChip(
+                                    selected = word == tashkeelWord,
+                                    onClick = {
+                                        if (tashkeelWord == word) {
+                                            tashkeelWord = null
+                                            onClearWordZoom()
+                                        } else {
+                                            tashkeelWord = word
+                                            onWordSelected(word)
+                                        }
+                                    },
+                                    label = { Text(word) }
+                                )
+                            }
+                        }
+
+                        if (tashkeelWord != null) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                            wordZoomBitmap?.let { bmp ->
+                                Text(
+                                    stringResource(R.string.review_word_zoom_label),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Image(
+                                    bitmap = bmp.asImageBitmap(),
+                                    contentDescription = stringResource(R.string.review_word_zoom_label),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .padding(bottom = 8.dp)
+                                )
+                            }
+                            val rawWords = page.rawText.split(Regex("\\s+")).filter { it.isNotBlank() }
+                            val idx = correctedWords.indexOf(tashkeelWord)
+                            if (idx >= 0) {
+                                TashkeelDiff(
+                                    rawWord = rawWords.getOrElse(idx) { "" },
+                                    correctedWord = tashkeelWord!!,
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                                )
+                            }
+                            TextButton(onClick = { tashkeelWord = null; onClearWordZoom() }) {
+                                Text(stringResource(R.string.review_close))
+                            }
+                        }
                     }
                 }
                 1 -> {
